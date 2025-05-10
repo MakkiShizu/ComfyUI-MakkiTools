@@ -75,8 +75,6 @@ class MergeImageChannels:
         blue_channel=None,
         alpha_channel=None,
     ):
-        import torch
-
         ref_tensor = next(
             ch
             for ch in [red_channel, green_channel, blue_channel, alpha_channel]
@@ -88,6 +86,8 @@ class MergeImageChannels:
         num_channels = 4 if has_alpha else 3
 
         def _rebuild_channel(input_tensor, target_idx):
+            import torch
+
             if input_tensor is None:
                 return torch.zeros(
                     *base_shape, num_channels, device=device, dtype=dtype
@@ -119,15 +119,41 @@ class ImageCountConcatenate:
 
     def ImageCountConcatenate(self, **kwargs):
         images = list(kwargs.values())
-        ref_shape = images[0].shape[1:]
-        for img in images:
-            if img.shape[1:] != ref_shape:
-                raise ValueError(
-                    "All images must have consistent H, W, and C dimensions."
-                )
+        ref_h, ref_w, ref_c = images[0].shape[1], images[0].shape[2], images[0].shape[3]
+        processed_images = []
         import torch
 
-        combined = torch.cat(images, dim=0)
+        for img in images:
+            current_c = img.shape[3]
+            if current_c != ref_c:
+                if current_c == 4 and ref_c == 3:
+                    rgb, alpha = img[..., :3], img[..., 3:]
+                    white = torch.ones_like(rgb)
+                    img = rgb * alpha + white * (1 - alpha)
+                elif current_c == 3 and ref_c == 4:
+                    alpha = torch.ones(
+                        (*img.shape[:-1], 1), dtype=img.dtype, device=img.device
+                    )
+                    img = torch.cat([img, alpha], dim=-1)
+                elif current_c == 1 and ref_c == 3:
+                    img = img.expand(-1, -1, -1, 3)
+                elif current_c == 3 and ref_c == 1:
+                    img = (
+                        0.299 * img[..., 0] + 0.587 * img[..., 1] + 0.114 * img[..., 2]
+                    ).unsqueeze(-1)
+            current_h, current_w = img.shape[1], img.shape[2]
+            if (current_h, current_w) != (ref_h, ref_w):
+                import comfy.utils
+
+                image = img.movedim(-1, 1)
+                new_image = comfy.utils.common_upscale(
+                    image, ref_w, ref_h, "bicubic", "center"
+                )
+                img = new_image.movedim(1, -1)
+
+            processed_images.append(img)
+
+        combined = torch.cat(processed_images, dim=0)
         current_count = combined.shape[0]
         return (combined[:current_count],)
 
