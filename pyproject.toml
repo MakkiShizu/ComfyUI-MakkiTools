@@ -1,0 +1,14 @@
+[project]
+name = "makkitools"
+description = ""
+version = "1.0.0"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/MakkiShizu/ComfyUI-MakkiTools"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-MakkiTools"
+Icon = "https://avatars.githubusercontent.com/u/142442886?v=4"
