@@ -58,7 +58,7 @@ export const dynamic_connection = (
 };
 
 app.registerExtension({
-  name: ["ImageCountConcatenate.image"],
+  name: ["ComfyUI-MakkiTools.ImageCountConcatenate.image"],
 
   async beforeRegisterNodeDef(nodeType, nodeData, app) {
     switch (nodeData.name) {
@@ -69,7 +69,7 @@ app.registerExtension({
   },
 });
 app.registerExtension({
-  name: ["ImageWidthStitch.image"],
+  name: ["ComfyUI-MakkiTools.ImageWidthStitch.image"],
 
   async beforeRegisterNodeDef(nodeType, nodeData, app) {
     switch (nodeData.name) {
@@ -80,7 +80,7 @@ app.registerExtension({
   },
 });
 app.registerExtension({
-  name: ["ImageHeigthStitch.image"],
+  name: ["ComfyUI-MakkiTools.ImageHeigthStitch.image"],
 
   async beforeRegisterNodeDef(nodeType, nodeData, app) {
     switch (nodeData.name) {
