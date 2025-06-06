@@ -236,6 +236,121 @@ class ImageHeigthStitch:
         return (concatenated,)
 
 
+class AutoLoop_create_pseudo_loop_video:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "frames": ("IMAGE",),
+                "transition_duration": (
+                    "FLOAT",
+                    {"default": 0.2, "min": 0, "max": 0.5, "step": 0.01},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "AutoLoop_create_pseudo_loop_video"
+    CATEGORY = "MakkiTools"
+
+    def ease_in_out(self, t):
+        return t * t * (3 - 2 * t)
+
+    def AutoLoop_create_pseudo_loop_video(self, frames, transition_duration):
+        B, H, W, C = frames.shape
+        assert B >= 4, "required 4+ frames."
+
+        L = max(1, min(B // 2, int(B * transition_duration)))
+
+        best_score = -float("inf")
+        best_idx = B // 2
+
+        search_start = max(L, B // 4)
+        search_end = min(B - L, 3 * B // 4)
+
+        for idx in range(search_start, search_end):
+            front_end = frames[idx - 1 : idx + 1].flatten(1)
+            back_start = frames[idx : idx + 2].flatten(1)
+
+            import torch.nn.functional as F
+
+            score = F.cosine_similarity(front_end, back_start).mean()
+
+            if score > best_score:
+                best_score = score
+                best_idx = idx
+
+        split_index = best_idx
+
+        front = frames[:split_index]
+        back = frames[split_index:]
+
+        back_no_tail = back[:-L] if L < len(back) else back[0:0]
+        front_no_head = front[L:] if L < len(front) else front[0:0]
+
+        import torch
+
+        alphas = self.ease_in_out(torch.linspace(0, 1, L))
+        alphas = alphas.view(L, 1, 1, 1)
+
+        transition = (1 - alphas) * back[-L:] + alphas * front[:L]
+
+        loop = torch.cat([back_no_tail, transition, front_no_head], dim=0)
+
+        return (loop,)
+
+
+from .environment_info import (
+    AlwaysEqualProxy,
+    format_environment_info,
+    get_environment_info,
+)
+
+any_type = AlwaysEqualProxy("*")
+
+
+class Environment_INFO:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "SYSTEM_INFO": ("BOOLEAN", {"default": True}),
+                "HARDWARE_INFO": ("BOOLEAN", {"default": True}),
+                "GPU_INFO": ("BOOLEAN", {"default": True}),
+                "DEEP_LEARNING_FRAMEWORKS_INFO": ("BOOLEAN", {"default": True}),
+                "ALL_INSTALLED_PACKAGES_INFO": ("BOOLEAN", {"default": True}),
+            },
+            "optional": {"anything": (any_type, {})},
+        }
+
+    RETURN_TYPES = ("STRING", any_type)
+    RETURN_NAMES = ("INFO", "anything")
+    FUNCTION = "Environment_INFO"
+    CATEGORY = "MakkiTools"
+
+    def Environment_INFO(
+        self,
+        SYSTEM_INFO,
+        HARDWARE_INFO,
+        GPU_INFO,
+        DEEP_LEARNING_FRAMEWORKS_INFO,
+        ALL_INSTALLED_PACKAGES_INFO,
+        anything=None,
+    ):
+        env_info = get_environment_info()
+        full_report = format_environment_info(
+            env_info,
+            SYSTEM_INFO,
+            HARDWARE_INFO,
+            GPU_INFO,
+            DEEP_LEARNING_FRAMEWORKS_INFO,
+            ALL_INSTALLED_PACKAGES_INFO,
+        )
+
+        return (full_report, anything)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -243,6 +358,8 @@ NODE_CLASS_MAPPINGS = {
     "MergeImageChannels": MergeImageChannels,
     "ImageWidthStitch": ImageWidthStitch,
     "ImageHeigthStitch": ImageHeigthStitch,
+    "AutoLoop_create_pseudo_loop_video": AutoLoop_create_pseudo_loop_video,
+    "Environment_INFO": Environment_INFO,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -251,4 +368,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "MergeImageChannels": "MergeImageChannels",
     "ImageWidthStitch": "ImageWidthStitch",
     "ImageHeigthStitch": "ImageHeigthStitch",
+    "AutoLoop_create_pseudo_loop_video": "AutoLoop_create_pseudo_loop_video",
+    "Environment_INFO": "Environment_INFO",
 }
