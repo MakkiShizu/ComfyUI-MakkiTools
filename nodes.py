@@ -436,6 +436,85 @@ Supported_Languages = [
     "Chinese(苗语)(hmn)",
     "Chinese(壮语)(zyb)",
 ]
+LANGUAGE_MAPPING = {
+    "google": {
+        "he": "iw",
+        "jw": "jv",
+        "zh-CHS": "zh-CN",
+        "zh-CHT": "zh-TW",
+    },
+    "yandex": {
+        "zh-CHS": "zh",
+    },
+    "bing": {
+        "bs": "bs-Latn",
+        "sr": "sr-Latn",
+        "tl": "fil",
+        "bn": "bn-BD",
+        "zh-CHS": "zh-Hans",
+        "zh-CHT": "zh-Hant",
+    },
+    "baidu": {
+        "ar": "ara",
+        "fr": "fra",
+        "es": "spa",
+        "ja": "jp",
+        "ko": "kor",
+        "vi": "vie",
+        "et": "est",
+        "bg": "bul",
+        "da": "dan",
+        "fi": "fin",
+        "ro": "rom",
+        "sv": "swe",
+        "sl": "slo",
+        "zh-CHS": "zh",
+        "zh-CHT": "cht",
+    },
+    "alibaba": {
+        "zh-CHS": "zh",
+        "zh-CHT": "zh-TW",
+    },
+    "tencent": {
+        "zh-CHS": "zh",
+    },
+    "sogou": {
+        "bs": "bs-Latn",
+        "sr": "sr-Latn",
+        "tl": "fil",
+    },
+    "iciba": {
+        "zh-CHS": "zh",
+        "zh-CHT": "cnt",
+    },
+    "iflytek": {
+        "zh-CHS": "zh",
+    },
+    "caiyun": {
+        "zh-CHS": "zh",
+    },
+    "deepl": {
+        "zh-CHS": "zh",
+    },
+    "argos": {
+        "zh-CHS": "zh",
+    },
+    "itranslate": {
+        "zh-CHS": "zh-CN",
+        "zh-CHT": "zh-TW",
+        "yue": "zh-HK",
+    },
+    "reverso": {
+        "zh-CHS": "zh",
+    },
+    "papago": {
+        "zh-CHS": "zh-CN",
+        "zh-CHT": "zh-TW",
+    },
+    "utibet": {
+        "zh-CHS": "zh",
+    },
+}
 
 
 class translators:
@@ -467,6 +546,9 @@ class translators:
     FUNCTION = "translators"
     CATEGORY = "MakkiTools"
 
+    def normalize_language_code(self, translator, Language):
+        return LANGUAGE_MAPPING.get(translator, {}).get(Language, Language)
+
     def translators(
         self,
         query_text,
@@ -481,9 +563,11 @@ class translators:
         if from_language != "auto":
             match = re.search(pattern, from_language)
             from_language = match.group(1)
+            from_language = self.normalize_language_code(translator, from_language)
 
         match = re.search(pattern, to_language)
         to_language = match.group(1)
+        to_language = self.normalize_language_code(translator, to_language)
 
         if if_use_preacceleration and not self.__class__._pre_acceleration_done:
             _ = ts.preaccelerate_and_speedtest()
