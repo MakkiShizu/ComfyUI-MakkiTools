@@ -351,6 +351,155 @@ class Environment_INFO:
         return (full_report, anything)
 
 
+import translators as ts
+
+Supported_Languages = [
+    "english(en)",
+    "chinese(zh)",
+    "arabic(ar)",
+    "russian(ru)",
+    "french(fr)",
+    "german(de)",
+    "spanish(es)",
+    "portuguese(pt)",
+    "italian(it)",
+    "japanese(ja)",
+    "korean(ko)",
+    "greek(el)",
+    "dutch(nl)",
+    "hindi(hi)",
+    "turkish(tr)",
+    "malay(ms)",
+    "thai(th)",
+    "vietnamese(vi)",
+    "indonesian(id)",
+    "hebrew(he)",
+    "polish(pl)",
+    "mongolian(mn)",
+    "czech(cs)",
+    "hungarian(hu)",
+    "estonian(et)",
+    "bulgarian(bg)",
+    "danish(da)",
+    "finnish(fi)",
+    "romanian(ro)",
+    "swedish(sv)",
+    "slovenian(sl)",
+    "persian/farsi(fa)",
+    "bosnian(bs)",
+    "serbian(sr)",
+    "fijian(fj)",
+    "filipino(tl)",
+    "haitiancreole(ht)",
+    "catalan(ca)",
+    "croatian(hr)",
+    "latvian(lv)",
+    "lithuanian(lt)",
+    "urdu(ur)",
+    "ukrainian(uk)",
+    "welsh(cy)",
+    "tahiti(ty)",
+    "tongan(to)",
+    "swahili(sw)",
+    "samoan(sm)",
+    "slovak(sk)",
+    "afrikaans(af)",
+    "norwegian(no)",
+    "bengali(bn)",
+    "malagasy(mg)",
+    "maltese(mt)",
+    "queretaro otomi(otq)",
+    "klingon/tlhingan hol(tlh)",
+    "gujarati(gu)",
+    "tamil(ta)",
+    "telugu(te)",
+    "punjabi(pa)",
+    "amharic(am)",
+    "azerbaijani(az)",
+    "bashkir(ba)",
+    "belarusian(be)",
+    "cebuano(ceb)",
+    "chuvash(cv)",
+    "esperanto(eo)",
+    "basque(eu)",
+    "irish(ga)",
+    "emoji(emj)",
+    "Chinese(简体)(zh-CHS)",
+    "Chinese(繁体)(zh-CHT)",
+    "Chinese(文言文)(wyw)",
+    "Chinese(粤语)(yue)",
+    "Chinese(内蒙语)(mn)",
+    "Chinese(维吾尔语)(uy)",
+    "Chinese(藏语)(ti)",
+    "Chinese(白苗文)(mww)",
+    "Chinese(彝语)(ii)",
+    "Chinese(苗语)(hmn)",
+    "Chinese(壮语)(zyb)",
+]
+
+
+class translators:
+    _pre_acceleration_done = False
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "query_text": ("STRING", {"multiline": True}),
+                "translator": (
+                    list(ts.translators_pool),
+                    {"default": list(ts.translators_pool)[0]},
+                ),
+                "from_language": (
+                    ["auto"] + Supported_Languages,
+                    {"default": "auto"},
+                ),
+                "to_language": (
+                    Supported_Languages,
+                    {"default": Supported_Languages[0]},
+                ),
+                "if_use_preacceleration": ("BOOLEAN", {"default": False}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("text",)
+    FUNCTION = "translators"
+    CATEGORY = "MakkiTools"
+
+    def translators(
+        self,
+        query_text,
+        translator,
+        from_language,
+        to_language,
+        if_use_preacceleration,
+    ):
+        pattern = r"\(([^()]+)\)[^()]*$"
+        import re
+
+        if from_language != "auto":
+            match = re.search(pattern, from_language)
+            from_language = match.group(1)
+
+        match = re.search(pattern, to_language)
+        to_language = match.group(1)
+
+        if if_use_preacceleration and not self.__class__._pre_acceleration_done:
+            _ = ts.preaccelerate_and_speedtest()
+            self.__class__._pre_acceleration_done = True
+
+        output = ts.translate_text(
+            query_text,
+            translator=translator,
+            from_language=from_language,
+            to_language=to_language,
+            if_use_preacceleration=if_use_preacceleration,
+        )
+
+        return (output,)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -360,6 +509,7 @@ NODE_CLASS_MAPPINGS = {
     "ImageHeigthStitch": ImageHeigthStitch,
     "AutoLoop_create_pseudo_loop_video": AutoLoop_create_pseudo_loop_video,
     "Environment_INFO": Environment_INFO,
+    "translators": translators,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -370,4 +520,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ImageHeigthStitch": "ImageHeigthStitch",
     "AutoLoop_create_pseudo_loop_video": "AutoLoop_create_pseudo_loop_video",
     "Environment_INFO": "Environment_INFO",
+    "translators": "translators",
 }
