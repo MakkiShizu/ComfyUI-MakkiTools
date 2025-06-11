@@ -320,6 +320,7 @@ class Environment_INFO:
                 "GPU_INFO": ("BOOLEAN", {"default": True}),
                 "DEEP_LEARNING_FRAMEWORKS_INFO": ("BOOLEAN", {"default": True}),
                 "ALL_INSTALLED_PACKAGES_INFO": ("BOOLEAN", {"default": True}),
+                "CUSTOM_NODES_FOLDERS_INFO": ("BOOLEAN", {"default": True}),
             },
             "optional": {"anything": (any_type, {})},
         }
@@ -336,6 +337,7 @@ class Environment_INFO:
         GPU_INFO,
         DEEP_LEARNING_FRAMEWORKS_INFO,
         ALL_INSTALLED_PACKAGES_INFO,
+        CUSTOM_NODES_FOLDERS_INFO,
         anything=None,
     ):
         env_info = get_environment_info()
@@ -346,6 +348,7 @@ class Environment_INFO:
             GPU_INFO,
             DEEP_LEARNING_FRAMEWORKS_INFO,
             ALL_INSTALLED_PACKAGES_INFO,
+            CUSTOM_NODES_FOLDERS_INFO,
         )
 
         return (full_report, anything)

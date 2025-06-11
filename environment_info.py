@@ -1,7 +1,9 @@
+import os
 import platform
 import sys
 import subprocess
 import psutil
+import folder_paths
 from datetime import datetime
 
 
@@ -77,16 +79,11 @@ def get_environment_info():
     except ImportError:
         env_info["PyTorch Version"] = "Not installed"
 
-    try:
-        import tensorflow as tf
-
-        env_info["TensorFlow Version"] = tf.__version__
-        env_info["TF CUDA Available"] = tf.test.is_built_with_cuda()
-    except ImportError:
-        env_info["TensorFlow Version"] = "Not installed"
-
     # 获取所有已安装的包及其版本
     env_info["all_packages"] = get_all_installed_packages()
+
+    # 获取custom_nodes文件夹名称
+    env_info["custom_nodes"] = get_custom_nodes_folders()
 
     return env_info
 
@@ -134,6 +131,32 @@ def get_all_installed_packages():
     return packages
 
 
+def get_custom_nodes_folders():
+    """获取custom_nodes的所有文件夹名称"""
+    try:
+        # 获取自定义节点路径
+        node_paths = folder_paths.get_folder_paths("custom_nodes")
+        all_node_names = []
+        for custom_node_path in node_paths:
+            possible_modules = os.listdir(custom_node_path)
+
+            for possible_module in possible_modules:
+                module_path = os.path.join(custom_node_path, possible_module)
+                if (
+                    os.path.isfile(module_path)
+                    or module_path.endswith(".disabled")
+                    or module_path == "__pycache__"
+                ):
+                    continue
+
+                # 提取节点名称（目录的最后一级）
+                node_name = os.path.basename(module_path)
+                all_node_names.append(node_name)
+        return all_node_names
+    except Exception as e:
+        return f"Failed to get folders: {e}"
+
+
 def format_environment_info(
     info,
     SYSTEM_INFO,
@@ -141,6 +164,7 @@ def format_environment_info(
     GPU_INFO,
     DEEP_LEARNING_FRAMEWORKS_INFO,
     ALL_INSTALLED_PACKAGES_INFO,
+    CUSTOM_NODES_FOLDERS_INFO,
 ):
     """将环境信息格式化为单个字符串"""
     output = []
@@ -197,9 +221,6 @@ def format_environment_info(
         if info.get("CUDA Version"):
             dl_info.append(f"CUDA Version: {info['CUDA Version']}")
             dl_info.append(f"cuDNN Version: {info['cuDNN Version']}")
-        dl_info.append(
-            f"TensorFlow Version: {info.get('TensorFlow Version', 'Not installed')}"
-        )
         output.extend(dl_info)
 
     # 所有已安装的包
@@ -212,6 +233,17 @@ def format_environment_info(
             output.append(f"\nTotal packages: {len(info['all_packages'])}")
         else:
             output.append(f"Error: {info['all_packages']}")
+
+    # 自定义节点文件夹
+    if CUSTOM_NODES_FOLDERS_INFO:
+        output.append("\n[CUSTOM NODES FOLDERS]")
+        folders = info.get("custom_nodes", [])
+        if isinstance(folders, list):
+            for folder in folders:
+                output.append(f"{folder}")
+        else:
+            output.append(f"{folders}")
+        output.append(f"\nTotal custom nodes: {len(folders)}")
 
     # 添加结束分隔线
     output.append("\n" + "=" * 60)
