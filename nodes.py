@@ -354,6 +354,9 @@ class Environment_INFO:
         return (full_report, anything)
 
 
+import os
+
+os.environ["translators_default_region"] = "EN"
 import translators as ts
 
 Supported_Languages = [
