@@ -4,6 +4,7 @@ import sys
 import subprocess
 import psutil
 import folder_paths
+import comfyui_version
 from datetime import datetime
 
 
@@ -25,6 +26,7 @@ def get_environment_info():
     env_info["System"] = platform.system()
     env_info["Processor"] = platform.processor()
     env_info["Python Version"] = sys.version.replace("\n", " ")
+    env_info["ComfyUI Version"] = comfyui_version.__version__.replace("\n", " ")
 
     # CPU信息
     env_info["CPU Cores (Physical)"] = psutil.cpu_count(logical=False) or "N/A"
@@ -181,6 +183,7 @@ def format_environment_info(
             f"System: {info['System']}",
             f"Processor: {info['Processor']}",
             f"Python Version: {info['Python Version']}",
+            f"ComfyUI Version: {info['ComfyUI Version']}",
         ]
         output.extend(sys_info)
 
