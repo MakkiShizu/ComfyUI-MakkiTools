@@ -354,180 +354,23 @@ class Environment_INFO:
         return (full_report, anything)
 
 
-import os
-
-os.environ["translators_default_region"] = "EN"
-import translators as ts
-
-Supported_Languages = [
-    "english(en)",
-    "chinese(zh)",
-    "arabic(ar)",
-    "russian(ru)",
-    "french(fr)",
-    "german(de)",
-    "spanish(es)",
-    "portuguese(pt)",
-    "italian(it)",
-    "japanese(ja)",
-    "korean(ko)",
-    "greek(el)",
-    "dutch(nl)",
-    "hindi(hi)",
-    "turkish(tr)",
-    "malay(ms)",
-    "thai(th)",
-    "vietnamese(vi)",
-    "indonesian(id)",
-    "hebrew(he)",
-    "polish(pl)",
-    "mongolian(mn)",
-    "czech(cs)",
-    "hungarian(hu)",
-    "estonian(et)",
-    "bulgarian(bg)",
-    "danish(da)",
-    "finnish(fi)",
-    "romanian(ro)",
-    "swedish(sv)",
-    "slovenian(sl)",
-    "persian/farsi(fa)",
-    "bosnian(bs)",
-    "serbian(sr)",
-    "fijian(fj)",
-    "filipino(tl)",
-    "haitiancreole(ht)",
-    "catalan(ca)",
-    "croatian(hr)",
-    "latvian(lv)",
-    "lithuanian(lt)",
-    "urdu(ur)",
-    "ukrainian(uk)",
-    "welsh(cy)",
-    "tahiti(ty)",
-    "tongan(to)",
-    "swahili(sw)",
-    "samoan(sm)",
-    "slovak(sk)",
-    "afrikaans(af)",
-    "norwegian(no)",
-    "bengali(bn)",
-    "malagasy(mg)",
-    "maltese(mt)",
-    "queretaro otomi(otq)",
-    "klingon/tlhingan hol(tlh)",
-    "gujarati(gu)",
-    "tamil(ta)",
-    "telugu(te)",
-    "punjabi(pa)",
-    "amharic(am)",
-    "azerbaijani(az)",
-    "bashkir(ba)",
-    "belarusian(be)",
-    "cebuano(ceb)",
-    "chuvash(cv)",
-    "esperanto(eo)",
-    "basque(eu)",
-    "irish(ga)",
-    "emoji(emj)",
-    "Chinese(简体)(zh-CHS)",
-    "Chinese(繁体)(zh-CHT)",
-    "Chinese(文言文)(wyw)",
-    "Chinese(粤语)(yue)",
-    "Chinese(内蒙语)(mn)",
-    "Chinese(维吾尔语)(uy)",
-    "Chinese(藏语)(ti)",
-    "Chinese(白苗文)(mww)",
-    "Chinese(彝语)(ii)",
-    "Chinese(苗语)(hmn)",
-    "Chinese(壮语)(zyb)",
-]
-LANGUAGE_MAPPING = {
-    "google": {
-        "he": "iw",
-        "jw": "jv",
-        "zh-CHS": "zh-CN",
-        "zh-CHT": "zh-TW",
-    },
-    "yandex": {
-        "zh-CHS": "zh",
-    },
-    "bing": {
-        "bs": "bs-Latn",
-        "sr": "sr-Latn",
-        "tl": "fil",
-        "bn": "bn-BD",
-        "zh-CHS": "zh-Hans",
-        "zh-CHT": "zh-Hant",
-    },
-    "baidu": {
-        "ar": "ara",
-        "fr": "fra",
-        "es": "spa",
-        "ja": "jp",
-        "ko": "kor",
-        "vi": "vie",
-        "et": "est",
-        "bg": "bul",
-        "da": "dan",
-        "fi": "fin",
-        "ro": "rom",
-        "sv": "swe",
-        "sl": "slo",
-        "zh-CHS": "zh",
-        "zh-CHT": "cht",
-    },
-    "alibaba": {
-        "zh-CHS": "zh",
-        "zh-CHT": "zh-TW",
-    },
-    "tencent": {
-        "zh-CHS": "zh",
-    },
-    "sogou": {
-        "bs": "bs-Latn",
-        "sr": "sr-Latn",
-        "tl": "fil",
-    },
-    "iciba": {
-        "zh-CHS": "zh",
-        "zh-CHT": "cnt",
-    },
-    "iflytek": {
-        "zh-CHS": "zh",
-    },
-    "caiyun": {
-        "zh-CHS": "zh",
-    },
-    "deepl": {
-        "zh-CHS": "zh",
-    },
-    "argos": {
-        "zh-CHS": "zh",
-    },
-    "itranslate": {
-        "zh-CHS": "zh-CN",
-        "zh-CHT": "zh-TW",
-        "yue": "zh-HK",
-    },
-    "reverso": {
-        "zh-CHS": "zh",
-    },
-    "papago": {
-        "zh-CHS": "zh-CN",
-        "zh-CHT": "zh-TW",
-    },
-    "utibet": {
-        "zh-CHS": "zh",
-    },
-}
-
-
 class translators:
-    _pre_acceleration_done = False
+    def __init__(self):
+        import os
+
+        os.environ["translators_default_region"] = "EN"
+        import translators as ts
+        from .translators_map import LANGUAGE_MAPPING
+
+        self._pre_acceleration_done = False
+        self.ts = ts
+        self.LANGUAGE_MAPPING = LANGUAGE_MAPPING
 
     @classmethod
     def INPUT_TYPES(s):
+        import translators as ts
+        from .translators_map import Supported_Languages
+
         return {
             "required": {
                 "query_text": ("STRING", {"multiline": True}),
@@ -553,7 +396,7 @@ class translators:
     CATEGORY = "MakkiTools"
 
     def normalize_language_code(self, translator, Language):
-        return LANGUAGE_MAPPING.get(translator, {}).get(Language, Language)
+        return self.LANGUAGE_MAPPING.get(translator, {}).get(Language, Language)
 
     def translators(
         self,
@@ -575,11 +418,11 @@ class translators:
         to_language = match.group(1)
         to_language = self.normalize_language_code(translator, to_language)
 
-        if if_use_preacceleration and not self.__class__._pre_acceleration_done:
-            _ = ts.preaccelerate_and_speedtest()
-            self.__class__._pre_acceleration_done = True
+        if if_use_preacceleration and not self._pre_acceleration_done:
+            _ = self.ts.preaccelerate_and_speedtest()
+            self._pre_acceleration_done = True
 
-        output = ts.translate_text(
+        output = self.ts.translate_text(
             query_text,
             translator=translator,
             from_language=from_language,
