@@ -437,6 +437,70 @@ class translators:
         return (output,)
 
 
+class translator_m2m100:
+    def __init__(self):
+        from .m2m100 import M2M100Translator
+
+        self.M2M100Translator = M2M100Translator
+
+    @classmethod
+    def INPUT_TYPES(s):
+        from .m2m100 import m2m100map
+
+        return {
+            "required": {
+                "query_text": ("STRING", {"multiline": True}),
+                "model": (
+                    [
+                        "facebook/m2m100_418M",
+                        "facebook/m2m100_1.2B",
+                        "facebook/m2m100-12B-avg-5-ckpt",
+                        "facebook/m2m100-12B-avg-10-ckpt",
+                        "facebook/m2m100-12B-last-ckpt",
+                    ],
+                    {"default": "facebook/m2m100_418M"},
+                ),
+                "from_language": (
+                    ["auto"] + m2m100map,
+                    {"default": "auto"},
+                ),
+                "to_language": (
+                    m2m100map,
+                    {"default": "English (en)"},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("text",)
+    FUNCTION = "translator_m2m100"
+    CATEGORY = "MakkiTools"
+
+    def translator_m2m100(
+        self,
+        query_text,
+        model,
+        from_language,
+        to_language,
+    ):
+        pattern = r"\(([^()]+)\)[^()]*$"
+        import re
+
+        if from_language != "auto":
+            match = re.search(pattern, from_language)
+            from_language = match.group(1)
+
+        match = re.search(pattern, to_language)
+        to_language = match.group(1)
+
+        translator = self.M2M100Translator(model_repo=model)
+        output = translator.translate_preserve_format(
+            query_text, from_language, to_language
+        )
+
+        return (output,)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -447,6 +511,7 @@ NODE_CLASS_MAPPINGS = {
     "AutoLoop_create_pseudo_loop_video": AutoLoop_create_pseudo_loop_video,
     "Environment_INFO": Environment_INFO,
     "translators": translators,
+    "translator_m2m100": translator_m2m100,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -458,4 +523,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "AutoLoop_create_pseudo_loop_video": "AutoLoop_create_pseudo_loop_video",
     "Environment_INFO": "Environment_INFO",
     "translators": "translators",
+    "translator_m2m100": "translator_m2m100",
 }
