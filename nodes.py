@@ -301,18 +301,22 @@ class AutoLoop_create_pseudo_loop_video:
         return (loop,)
 
 
-from .environment_info import (
-    AlwaysEqualProxy,
-    format_environment_info,
-    get_environment_info,
-)
-
-any_type = AlwaysEqualProxy("*")
-
-
 class Environment_INFO:
+    from .environment_info import AlwaysEqualProxy
+
+    any_type = AlwaysEqualProxy("*")
+
+    def __init__(self):
+        from .environment_info import format_environment_info, get_environment_info
+
+        self.format_environment_info = format_environment_info
+        self.get_environment_info = get_environment_info
+
     @classmethod
     def INPUT_TYPES(s):
+        from .environment_info import AlwaysEqualProxy
+
+        any_type = AlwaysEqualProxy("*")
         return {
             "required": {
                 "SYSTEM_INFO": ("BOOLEAN", {"default": True}),
@@ -340,8 +344,8 @@ class Environment_INFO:
         CUSTOM_NODES_FOLDERS_INFO,
         anything=None,
     ):
-        env_info = get_environment_info()
-        full_report = format_environment_info(
+        env_info = self.get_environment_info()
+        full_report = self.format_environment_info(
             env_info,
             SYSTEM_INFO,
             HARDWARE_INFO,
