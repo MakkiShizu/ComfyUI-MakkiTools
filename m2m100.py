@@ -2,12 +2,16 @@ import os
 import re
 import folder_paths
 from langdetect import detect
-from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
+from transformers import (
+    M2M100ForConditionalGeneration,
+    M2M100Tokenizer,
+    BitsAndBytesConfig,
+)
 from huggingface_hub import snapshot_download
 
 
 class M2M100Translator:
-    def __init__(self, model_repo="facebook/m2m100_418M"):
+    def __init__(self, model_repo: str, quantization: str, attention: str):
         model_directory = os.path.join(folder_paths.models_dir, "m2m100")
         os.makedirs(model_directory, exist_ok=True)
         model_name = model_repo.rsplit("/", 1)[-1]
@@ -19,7 +23,7 @@ class M2M100Translator:
         # 确保模型存在
         self._download_model()
         # 加载模型
-        self._load_model()
+        self._load_model(quantization, attention)
 
     def _download_model(self):
         """下载模型到本地目录（如果不存在）"""
@@ -32,9 +36,26 @@ class M2M100Translator:
                 local_dir_use_symlinks=False,
             )
 
-    def _load_model(self):
+    def _load_model(self, quantization: str, attention: str):
         """从本地路径加载模型和分词器"""
-        self.model = M2M100ForConditionalGeneration.from_pretrained(self.model_path)
+        if quantization == "4bit":
+            quantization_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+            )
+        elif quantization == "8bit":
+            quantization_config = BitsAndBytesConfig(
+                load_in_8bit=True,
+            )
+        else:
+            quantization_config = None
+
+        self.model = M2M100ForConditionalGeneration.from_pretrained(
+            self.model_path,
+            torch_dtype="auto",
+            device_map="auto",
+            attn_implementation=attention,
+            quantization_config=quantization_config,
+        )
         self.tokenizer = M2M100Tokenizer.from_pretrained(self.model_path)
 
     def _translate_segment(self, text: str, src_lang: str, tgt_lang: str) -> str:
@@ -43,6 +64,7 @@ class M2M100Translator:
             src_lang = detect(text)
         self.tokenizer.src_lang = src_lang
         encoded_text = self.tokenizer(text, return_tensors="pt")
+        encoded_text = encoded_text.to(self.model.device)
         generated_tokens = self.model.generate(
             **encoded_text, forced_bos_token_id=self.tokenizer.get_lang_id(tgt_lang)
         )

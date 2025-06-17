@@ -468,6 +468,14 @@ class translator_m2m100:
                     m2m100map,
                     {"default": "English (en)"},
                 ),
+                "quantization": (
+                    ["none", "4bit", "8bit"],
+                    {"default": "8bit"},
+                ),
+                "attention": (
+                    ["flash_attention_2", "sdpa", "eager"],
+                    {"default": "sdpa"},
+                ),
             }
         }
 
@@ -482,6 +490,8 @@ class translator_m2m100:
         model,
         from_language,
         to_language,
+        quantization,
+        attention,
     ):
         pattern = r"\(([^()]+)\)[^()]*$"
         import re
@@ -493,7 +503,9 @@ class translator_m2m100:
         match = re.search(pattern, to_language)
         to_language = match.group(1)
 
-        translator = self.M2M100Translator(model_repo=model)
+        translator = self.M2M100Translator(
+            model_repo=model, quantization=quantization, attention=attention
+        )
         output = translator.translate_preserve_format(
             query_text, from_language, to_language
         )
