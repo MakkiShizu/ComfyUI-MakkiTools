@@ -21,3 +21,7 @@ Environment_INFO: Display environment information to workflow for easy display o
 translators: [translators](https://github.com/UlionTse/translators) in ComfyUI.
 
 ![image](translators.png)
+
+translator_m2m100: [m2m_100](https://github.com/pytorch/fairseq/tree/master/examples/m2m_100) in ComfyUI(After downloading the model, it can be used when no network).
+
+![image](translator_m2m100.png)
