@@ -82,6 +82,7 @@ class M2M100Translator:
         """
         if src_lang == "auto":
             src_lang = detect(text)
+            src_lang = self.normalize_language_code(src_lang)
 
         if not self.model or not self.tokenizer:
             raise RuntimeError("Model not initialized properly")
@@ -118,6 +119,9 @@ class M2M100Translator:
 
         # 合并所有翻译段落
         return "".join(translated_segments)
+
+    def normalize_language_code(self, Language):
+        return LANGUAGE_MAPPING.get("langdetect", {}).get(Language, Language)
 
 
 m2m100map = [
@@ -222,3 +226,4 @@ m2m100map = [
     "Chinese (zh)",
     "Zulu (zu)",
 ]
+LANGUAGE_MAPPING = {"langdetect": {"zh-cn": "zh", "zh-tw": "zh"}}
