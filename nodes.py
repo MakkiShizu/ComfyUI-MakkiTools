@@ -513,6 +513,36 @@ class translator_m2m100:
         return (output,)
 
 
+class random_any:
+    from .environment_info import AlwaysEqualProxy
+
+    any_type = AlwaysEqualProxy("*")
+
+    def __init__(self):
+        import random
+
+        self.random = random
+
+    @classmethod
+    def INPUT_TYPES(s):
+        from .environment_info import AlwaysEqualProxy
+
+        any_type = AlwaysEqualProxy("*")
+        return {"optional": {"anything": (any_type, {})}}
+
+    RETURN_TYPES = (any_type, "INT", "FLOAT")
+    RETURN_NAMES = ("any", "int", "float")
+    FUNCTION = "random_any"
+    CATEGORY = "MakkiTools"
+
+    def random_any(self, anything=None):
+        return (
+            anything,
+            self.random.Random().randint(0, 0xFFFFFFFFFFFFFFFF),
+            self.random.Random().random(),
+        )
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -524,6 +554,7 @@ NODE_CLASS_MAPPINGS = {
     "Environment_INFO": Environment_INFO,
     "translators": translators,
     "translator_m2m100": translator_m2m100,
+    "random_any": random_any,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -536,4 +567,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Environment_INFO": "Environment_INFO",
     "translators": "translators",
     "translator_m2m100": "translator_m2m100",
+    "random_any": "random_any",
 }
