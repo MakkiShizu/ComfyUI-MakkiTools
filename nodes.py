@@ -356,7 +356,7 @@ class Environment_INFO:
             CUSTOM_NODES_FOLDERS_INFO,
         )
 
-        return {"ui": {"info": full_report}, "result": (full_report, anything)}
+        return {"ui": {"info": (full_report,)}, "result": (full_report, anything)}
 
 
 class translators:
