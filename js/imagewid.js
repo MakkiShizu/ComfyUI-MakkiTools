@@ -142,7 +142,7 @@ const NODES_TO_EXTEND = [
 ];
 
 app.registerExtension({
-  name: "ComfyUI-MakkiTools.Wid",
+  name: "ComfyUI-MakkiTools.imagewid",
 
   async beforeRegisterNodeDef(nodeType, nodeData) {
     if (NODES_TO_EXTEND.includes(nodeData.name)) {
