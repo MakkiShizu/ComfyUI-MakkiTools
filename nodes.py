@@ -544,6 +544,90 @@ class random_any:
         )
 
 
+class AnyImageStitch:
+    upscale_methods = ["nearest-exact", "bilinear", "area", "bicubic", "bislerp"]
+    crop_methods = ["disabled", "center"]
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "dimension": (["horizontal", "vertical"], {"default": "horizontal"}),
+                "reference_type": (
+                    ["first image", "custom"],
+                    {"default": "first image"},
+                ),
+                "reference_value": (
+                    "INT",
+                    {"default": 512, "min": 1, "max": 4096, "step": 1},
+                ),
+                "upscale_method": (
+                    s.upscale_methods,
+                    {"default": "bicubic"},
+                ),
+                "crop": (s.crop_methods, {"default": "disabled"}),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "AnyImageStitch"
+    CATEGORY = "MakkiTools"
+
+    def AnyImageStitch(
+        self, dimension, reference_type, reference_value, upscale_method, crop, **kwargs
+    ):
+        import torch
+
+        # 获取图像列表并过滤非图像输入
+        images = [
+            img
+            for img in kwargs.values()
+            if isinstance(img, torch.Tensor) and img.dim() == 4
+        ]
+
+        # 确定参考尺寸
+        if reference_type == "first image":
+            ref_dim = (
+                images[0].shape[1] if dimension == "horizontal" else images[0].shape[2]
+            )
+        else:
+            ref_dim = reference_value
+
+        resized_images = []
+        for img in images:
+            batch, H, W, channels = img.shape
+
+            # 计算目标尺寸
+            if dimension == "horizontal":
+                target_H = ref_dim
+                aspect_ratio = W / H
+                target_W = int(target_H * aspect_ratio)
+            else:  # vertical
+                target_W = ref_dim
+                aspect_ratio = H / W
+                target_H = int(target_W * aspect_ratio)
+
+            # 调整图像尺寸（如果需要）
+            if H != target_H or W != target_W:
+                import comfy.utils
+
+                image = img.movedim(-1, 1)  # [batch, channels, H, W]
+                new_image = comfy.utils.common_upscale(
+                    image, target_W, target_H, upscale_method, crop
+                )
+                img = new_image.movedim(1, -1)  # 恢复原始维度
+
+            resized_images.append(img)
+
+        # 确定拼接维度
+        dim = 2 if dimension == "horizontal" else 1
+
+        # 拼接所有图像
+        concatenated = torch.cat(resized_images, dim=dim)
+        return (concatenated,)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -556,6 +640,7 @@ NODE_CLASS_MAPPINGS = {
     "translators": translators,
     "translator_m2m100": translator_m2m100,
     "random_any": random_any,
+    "AnyImageStitch": AnyImageStitch,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -569,4 +654,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "translators": "translators",
     "translator_m2m100": "translator_m2m100",
     "random_any": "random_any",
+    "AnyImageStitch": "AnyImageStitch",
 }

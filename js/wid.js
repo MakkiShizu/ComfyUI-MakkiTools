@@ -126,9 +126,8 @@ function extendNodeForDynamicInputs(nodeType, inputName = "image") {
     if (!linkInfo) return;
     const res = onConnectionsChange?.apply(this, arguments);
 
-    // 获取实际的输入类型（默认为 IMAGE）
-    const inputType = this.inputs[0]?.type || "IMAGE";
-    manageDynamicInputs(this, index, connected, inputName, inputType);
+    // 始终使用"IMAGE"类型
+    manageDynamicInputs(this, index, connected, inputName, "IMAGE");
 
     return res;
   };
@@ -139,6 +138,7 @@ const NODES_TO_EXTEND = [
   "ImageCountConcatenate",
   "ImageWidthStitch",
   "ImageHeigthStitch",
+  "AnyImageStitch",
 ];
 
 app.registerExtension({
