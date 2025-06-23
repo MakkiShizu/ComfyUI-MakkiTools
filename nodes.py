@@ -331,6 +331,7 @@ class Environment_INFO:
 
     RETURN_TYPES = ("STRING", any_type)
     RETURN_NAMES = ("INFO", "anything")
+    OUTPUT_NODE = True
     FUNCTION = "Environment_INFO"
     CATEGORY = "MakkiTools"
 
@@ -355,7 +356,7 @@ class Environment_INFO:
             CUSTOM_NODES_FOLDERS_INFO,
         )
 
-        return (full_report, anything)
+        return {"ui": {"info": full_report}, "result": (full_report, anything)}
 
 
 class translators:
