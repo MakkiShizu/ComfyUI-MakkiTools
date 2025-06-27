@@ -139,6 +139,7 @@ const NODES_TO_EXTEND = [
   "ImageWidthStitch",
   "ImageHeigthStitch",
   "AnyImageStitch",
+  "AnyImagetoConditioning_flux_kontext",
 ];
 
 app.registerExtension({

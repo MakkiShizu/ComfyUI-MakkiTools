@@ -12,7 +12,6 @@ class GetImageNthCount:
         }
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
     FUNCTION = "GetImageNthCount"
     CATEGORY = "MakkiTools"
 
@@ -31,7 +30,6 @@ class ImageChannelSeparate:
         }
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
     FUNCTION = "ImageChannelSeparate"
     CATEGORY = "MakkiTools"
 
@@ -64,7 +62,6 @@ class MergeImageChannels:
         }
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
     FUNCTION = "MergeImageChannels"
     CATEGORY = "MakkiTools"
 
@@ -113,7 +110,6 @@ class ImageCountConcatenate:
         return {"required": {}}
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
     FUNCTION = "ImageCountConcatenate"
     CATEGORY = "MakkiTools"
 
@@ -164,7 +160,6 @@ class ImageWidthStitch:
         return {"required": {}}
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
     FUNCTION = "ImageWidthStitch"
     CATEGORY = "MakkiTools"
 
@@ -203,7 +198,6 @@ class ImageHeigthStitch:
         return {"required": {}}
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
     FUNCTION = "ImageHeigthStitch"
     CATEGORY = "MakkiTools"
 
@@ -250,7 +244,6 @@ class AutoLoop_create_pseudo_loop_video:
         }
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
     FUNCTION = "AutoLoop_create_pseudo_loop_video"
     CATEGORY = "MakkiTools"
 
@@ -396,7 +389,6 @@ class translators:
         }
 
     RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("text",)
     FUNCTION = "translators"
     CATEGORY = "MakkiTools"
 
@@ -481,7 +473,6 @@ class translator_m2m100:
         }
 
     RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("text",)
     FUNCTION = "translator_m2m100"
     CATEGORY = "MakkiTools"
 
@@ -570,7 +561,6 @@ class AnyImageStitch:
         }
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
     FUNCTION = "AnyImageStitch"
     CATEGORY = "MakkiTools"
 
@@ -628,6 +618,69 @@ class AnyImageStitch:
         return (concatenated,)
 
 
+class AnyImagetoConditioning_flux_kontext:
+    PREFERED_KONTEXT_RESOLUTIONS = [
+        (672, 1568),
+        (688, 1504),
+        (720, 1456),
+        (752, 1392),
+        (800, 1328),
+        (832, 1248),
+        (880, 1184),
+        (944, 1104),
+        (1024, 1024),
+        (1104, 944),
+        (1184, 880),
+        (1248, 832),
+        (1328, 800),
+        (1392, 752),
+        (1456, 720),
+        (1504, 688),
+        (1568, 672),
+    ]
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "conditioning": ("CONDITIONING",),
+                "vae": ("VAE",),
+            }
+        }
+
+    RETURN_TYPES = ("CONDITIONING",)
+    FUNCTION = "AnyImagetoConditioning_flux_kontext"
+    CATEGORY = "MakkiTools"
+
+    def AnyImagetoConditioning_flux_kontext(self, conditioning, vae, **kwargs):
+        for img in kwargs.values():
+            pixels = self.scale(img)
+            t = vae.encode(pixels[:, :, :, :3])
+            latent = {"samples": t}
+            import node_helpers
+
+            conditioning = node_helpers.conditioning_set_values(
+                conditioning, {"reference_latents": [latent["samples"]]}, append=True
+            )
+
+        return (conditioning,)
+
+    def scale(self, image):
+        width = image.shape[2]
+        height = image.shape[1]
+        aspect_ratio = width / height
+        _, width, height = min(
+            (abs(aspect_ratio - w / h), w, h)
+            for w, h in self.PREFERED_KONTEXT_RESOLUTIONS
+        )
+        import comfy.utils
+
+        image = comfy.utils.common_upscale(
+            image.movedim(-1, 1), width, height, "lanczos", "center"
+        ).movedim(1, -1)
+        return image
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -641,6 +694,7 @@ NODE_CLASS_MAPPINGS = {
     "translator_m2m100": translator_m2m100,
     "random_any": random_any,
     "AnyImageStitch": AnyImageStitch,
+    "AnyImagetoConditioning_flux_kontext": AnyImagetoConditioning_flux_kontext,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -655,4 +709,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "translator_m2m100": "translator_m2m100",
     "random_any": "random_any",
     "AnyImageStitch": "AnyImageStitch",
+    "AnyImagetoConditioning_flux_kontext": "AnyImagetoConditioning_flux_kontext",
 }
