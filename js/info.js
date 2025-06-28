@@ -1,11 +1,12 @@
 import { app } from "../../../scripts/app.js";
 import { ComfyWidgets } from "../../../scripts/widgets.js";
+const TARGET_NODES = new Set(["Environment_INFO", "show_type"]);
 
 app.registerExtension({
   name: "ComfyUI-MakkiTools.Environment_INFO.INFO",
   async beforeRegisterNodeDef(nodeType, nodeData, app) {
-    // 只针对Environment_INFO节点
-    if (nodeData.name === "Environment_INFO") {
+    // 从TARGET_NODES获取节点名称
+    if (TARGET_NODES.has(nodeData.name)) {
       const onExecuted = nodeType.prototype.onExecuted;
 
       nodeType.prototype.onExecuted = function (message) {

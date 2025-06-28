@@ -681,6 +681,24 @@ class AnyImagetoConditioning_flux_kontext:
         return image
 
 
+class show_type:
+    @classmethod
+    def INPUT_TYPES(s):
+        from .environment_info import AlwaysEqualProxy
+
+        any_type = AlwaysEqualProxy("*")
+        return {"optional": {"anything": (any_type, {})}}
+
+    RETURN_TYPES = ("STRING",)
+    OUTPUT_NODE = True
+    FUNCTION = "show_type"
+    CATEGORY = "MakkiTools"
+
+    def show_type(self, anything):
+        type_name = type(anything).__name__.lower()
+        return {"ui": {"info": (type_name,)}, "result": (type_name,)}
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -695,6 +713,7 @@ NODE_CLASS_MAPPINGS = {
     "random_any": random_any,
     "AnyImageStitch": AnyImageStitch,
     "AnyImagetoConditioning_flux_kontext": AnyImagetoConditioning_flux_kontext,
+    "show_type": show_type,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -710,4 +729,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "random_any": "random_any",
     "AnyImageStitch": "AnyImageStitch",
     "AnyImagetoConditioning_flux_kontext": "AnyImagetoConditioning_flux_kontext",
+    "show_type": "show_type",
 }
