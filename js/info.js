@@ -121,7 +121,7 @@ app.registerExtension({
               // 配置文本框属性
               w.inputEl.readOnly = true; // 设为只读
               w.inputEl.style.opacity = 0.8; // 半透明效果
-              w.value = infoText; // 填充处理后的文本
+              w.value = savedInfoValue; // 填充处理后的文本
 
               // 保存到节点实例
               this[INFO_VALUE] = savedInfoValue;
