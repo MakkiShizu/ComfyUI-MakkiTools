@@ -307,9 +307,6 @@ class Environment_INFO:
 
     @classmethod
     def INPUT_TYPES(s):
-        from .environment_info import AlwaysEqualProxy
-
-        any_type = AlwaysEqualProxy("*")
         return {
             "required": {
                 "SYSTEM_INFO": ("BOOLEAN", {"default": True}),
@@ -319,7 +316,7 @@ class Environment_INFO:
                 "ALL_INSTALLED_PACKAGES_INFO": ("BOOLEAN", {"default": True}),
                 "CUSTOM_NODES_FOLDERS_INFO": ("BOOLEAN", {"default": True}),
             },
-            "optional": {"anything": (any_type, {})},
+            "optional": {"anything": (s.any_type, {})},
         }
 
     RETURN_TYPES = ("STRING", any_type)
@@ -517,10 +514,7 @@ class random_any:
 
     @classmethod
     def INPUT_TYPES(s):
-        from .environment_info import AlwaysEqualProxy
-
-        any_type = AlwaysEqualProxy("*")
-        return {"optional": {"anything": (any_type, {})}}
+        return {"optional": {"anything": (s.any_type, {})}}
 
     RETURN_TYPES = (any_type, "INT", "FLOAT")
     RETURN_NAMES = ("any", "int", "float")
@@ -682,12 +676,13 @@ class AnyImagetoConditioning_flux_kontext:
 
 
 class show_type:
+    from .environment_info import AlwaysEqualProxy
+
+    any_type = AlwaysEqualProxy("*")
+
     @classmethod
     def INPUT_TYPES(s):
-        from .environment_info import AlwaysEqualProxy
-
-        any_type = AlwaysEqualProxy("*")
-        return {"optional": {"anything": (any_type, {})}}
+        return {"optional": {"anything": (s.any_type, {})}}
 
     RETURN_TYPES = ("STRING",)
     OUTPUT_NODE = True
