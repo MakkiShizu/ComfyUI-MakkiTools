@@ -728,7 +728,8 @@ class timer:
     FUNCTION = "timer"
     CATEGORY = "MakkiTools"
 
-    def IS_CHANGED(self, **kwargs):
+    @classmethod
+    def IS_CHANGED(s, **kwargs):
         return float("nan")
 
     def format_time(self, ms, format_type):
