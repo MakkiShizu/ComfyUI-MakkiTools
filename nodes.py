@@ -694,6 +694,78 @@ class show_type:
         return {"ui": {"info": (type_name,)}, "result": (type_name,)}
 
 
+class timer:
+    from .environment_info import AlwaysEqualProxy
+
+    any_type = AlwaysEqualProxy("*")
+
+    def __init__(self):
+        import time
+
+        self.time = time
+
+    class Timer:
+        def __init__(self):
+            self.start_time = None
+            self.elapsed = 0
+            self.elapsed_str = "0ms"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "mode": (["start", "stop"],),
+                "format": (["ms", "s", "m", "auto"], {"default": "auto"}),
+            },
+            "optional": {
+                "any": (s.any_type, {}),
+                "timer": ("TIMER_MAKKI",),
+            },
+        }
+
+    RETURN_TYPES = (any_type, "TIMER_MAKKI", "INT", "STRING")
+    RETURN_NAMES = ("any", "timer", "time_ms", "time_str")
+    FUNCTION = "timer"
+    CATEGORY = "MakkiTools"
+
+    def IS_CHANGED(self, **kwargs):
+        return float("nan")
+
+    def format_time(self, ms, format_type):
+        if format_type == "ms" or (format_type == "auto" and ms < 1000):
+            return f"{ms}ms"
+
+        seconds = ms / 1000.0
+        if format_type == "s" or (format_type == "auto" and seconds < 60):
+            return f"{seconds:.3f}s"
+
+        minutes = int(seconds // 60)
+        remaining_sec = seconds % 60
+        return f"{minutes}m {remaining_sec:.1f}s"
+
+    def timer(self, mode, format, any=None, timer=None):
+        if mode == "start":
+            if timer is None or timer.start_time is not None:
+                timer = self.Timer()
+            timer.start_time = self.time.time()
+            timer.elapsed = 0
+            timer.elapsed_str = "0ms"
+            return (any, timer, 0, "0ms")
+
+        elif mode == "stop":
+            if timer is None:
+                raise ValueError("Stop mode requires a valid timer input")
+            if timer.start_time is None:
+                return (any, timer, timer.elapsed)
+
+            end_time = self.time.time()
+            elapsed_ms = int((end_time - timer.start_time) * 1000)
+            timer.elapsed = elapsed_ms
+            timer.elapsed_str = self.format_time(elapsed_ms, format)
+            timer.start_time = None
+            return (any, timer, timer.elapsed, timer.elapsed_str)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -709,6 +781,7 @@ NODE_CLASS_MAPPINGS = {
     "AnyImageStitch": AnyImageStitch,
     "AnyImagetoConditioning_flux_kontext": AnyImagetoConditioning_flux_kontext,
     "show_type": show_type,
+    "timer": timer,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -725,4 +798,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "AnyImageStitch": "AnyImageStitch",
     "AnyImagetoConditioning_flux_kontext": "AnyImagetoConditioning_flux_kontext",
     "show_type": "show_type",
+    "timer": "timer",
 }
