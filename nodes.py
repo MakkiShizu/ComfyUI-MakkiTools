@@ -763,7 +763,10 @@ class timer:
             timer.elapsed = elapsed_ms
             timer.elapsed_str = self.format_time(elapsed_ms, format)
             timer.start_time = None
-            return (any, timer, timer.elapsed, timer.elapsed_str)
+            return {
+                "ui": {"info": (timer.elapsed_str,)},
+                "result": (any, timer, timer.elapsed, timer.elapsed_str),
+            }
 
 
 NODE_CLASS_MAPPINGS = {
