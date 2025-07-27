@@ -773,6 +773,102 @@ class timer:
             }
 
 
+class Image_Resize:
+    upscale_methods = [
+        "auto",
+        "nearest-exact",
+        "bilinear",
+        "area",
+        "bicubic",
+        "lanczos",
+    ]
+    crop_methods = ["disabled", "center"]
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "upscale_method": (s.upscale_methods, {"default": "auto"}),
+                "crop_method": (s.crop_methods, {"default": "center"}),
+                "size": ("INT", {"default": 1024, "min": 1, "max": 8192, "step": 1}),
+                "GCD": ("INT", {"default": 1, "min": 1, "max": 512, "step": 1}),
+            },
+            "optional": {
+                "image": ("IMAGE",),
+                "width": (
+                    "INT",
+                    {"min": 1, "max": 8192, "step": 1, "defaultInput": True},
+                ),
+                "height": (
+                    "INT",
+                    {"min": 1, "max": 8192, "step": 1, "defaultInput": True},
+                ),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "Image_Resize"
+    CATEGORY = "MakkiTools"
+
+    def Image_Resize(
+        self,
+        upscale_method,
+        crop_method,
+        size,
+        GCD,
+        image=None,
+        width=None,
+        height=None,
+    ):
+        if image is not None:
+            original_height, original_width = image.shape[1:3]
+        else:
+            original_width = original_height = size
+
+        original_pixels = original_width * original_height
+        target_pixels = size**2
+
+        aspect_ratio = original_width / original_height
+
+        if width is not None and height is not None:
+            new_width, new_height = width, height
+        elif width is not None:
+            new_width = width
+            new_height = int(new_width / aspect_ratio)
+        elif height is not None:
+            new_height = height
+            new_width = int(new_height * aspect_ratio)
+        else:
+            new_height = int((target_pixels / aspect_ratio) ** 0.5)
+            new_width = int(new_height * aspect_ratio)
+
+        new_width = max(GCD, round(new_width / GCD) * GCD)
+        new_height = max(GCD, round(new_height / GCD) * GCD)
+
+        if image is not None:
+            import comfy.utils
+
+            if upscale_method == "auto":
+                if original_pixels > target_pixels:
+                    upscale_method = "area"
+                elif original_pixels < target_pixels:
+                    upscale_method = "lanczos"
+                else:
+                    upscale_method = "nearest-exact"
+
+            image = image.movedim(-1, 1)
+            new_image = comfy.utils.common_upscale(
+                image, new_width, new_height, upscale_method, crop_method
+            )
+            new_image = new_image.movedim(1, -1)
+        else:
+            import torch
+
+            new_image = torch.zeros((1, new_height, new_width, 3), dtype=torch.float32)
+
+        return (new_image,)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -789,6 +885,7 @@ NODE_CLASS_MAPPINGS = {
     "AnyImagetoConditioning_flux_kontext": AnyImagetoConditioning_flux_kontext,
     "show_type": show_type,
     "timer": timer,
+    "Image_Resize": Image_Resize,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -806,4 +903,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "AnyImagetoConditioning_flux_kontext": "AnyImagetoConditioning_flux_kontext",
     "show_type": "show_type",
     "timer": "timer",
+    "Image_Resize": "Image_Resize",
 }
