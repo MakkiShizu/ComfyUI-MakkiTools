@@ -869,6 +869,42 @@ class Image_Resize:
         return (new_image,)
 
 
+class Prism_Mirage:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "exterior_image": ("IMAGE",),
+                "interior_image": ("IMAGE",),
+                "exterior_level": (
+                    "INT",
+                    {"default": 42, "min": 0, "max": 255, "step": 1},
+                ),
+                "interior_level": (
+                    "INT",
+                    {"default": 24, "min": 0, "max": 255, "step": 1},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "Prism_Mirage"
+    CATEGORY = "MakkiTools"
+
+    def Prism_Mirage(
+        self, exterior_image, interior_image, exterior_level, interior_level
+    ):
+        if exterior_level < interior_level:
+            interior_level == exterior_level
+        from .Prism_Mirage import process_images
+
+        image = process_images(
+            exterior_image, interior_image, exterior_level, interior_level
+        )
+
+        return (image,)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -886,6 +922,7 @@ NODE_CLASS_MAPPINGS = {
     "show_type": show_type,
     "timer": timer,
     "Image_Resize": Image_Resize,
+    "Prism_Mirage": Prism_Mirage,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount",
@@ -904,4 +941,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "show_type": "show_type",
     "timer": "timer",
     "Image_Resize": "Image_Resize",
+    "Prism_Mirage": "Prism_Mirage",
 }
