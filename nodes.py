@@ -905,6 +905,213 @@ class Prism_Mirage:
         return (image,)
 
 
+class int_calculate_statistics:
+    from .environment_info import AlwaysEqualProxy
+
+    any_type = AlwaysEqualProxy("*")
+
+    def __init__(self):
+        import math
+        from collections import Counter
+
+        self.math = math
+        self.Counter = Counter
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "stat_mode": (
+                    [
+                        "count",
+                        "sum",
+                        "mean",
+                        "min",
+                        "max",
+                        "range",
+                        "median",
+                        "quartiles",
+                        "iqr",
+                        "mode",
+                        "variance",
+                        "std_dev",
+                        "mad",
+                        "skewness",
+                        "kurtosis",
+                        "frequency",
+                        "sorted_list",
+                        "unique_values",
+                        "cumulative_sum",
+                        "proportions",
+                        "z_scores",
+                    ],
+                    {"default": "count"},
+                ),
+            }
+        }
+
+    RETURN_TYPES = (any_type,)
+    FUNCTION = "int_calculate_statistics"
+    CATEGORY = "MakkiTools"
+
+    def int_calculate_statistics(self, stat_mode, **kwargs):
+        return (self.calculate_statistics(stat_mode, **kwargs),)
+
+    def calculate_statistics(self, stat_mode, **kwargs):
+        """
+        计算并返回指定的整数统计结果
+
+        参数:
+            stat_mode: 要计算的统计量名称
+            **kwargs: 任意数量的整数关键字参数
+
+        返回:
+            指定的统计量结果
+        """
+        # 提取所有整数值
+        ints = list(kwargs.values())
+        n = len(ints)
+
+        # 空输入处理
+        if n == 0:
+            if stat_mode == "count":
+                return 0
+            return None
+
+        # 计算基本统计量
+        def calculate_basic():
+            total = sum(ints)
+            mean = total / n
+            sorted_ints = sorted(ints)
+            min_val = sorted_ints[0]
+            max_val = sorted_ints[-1]
+
+            return {
+                "count": n,
+                "sum": total,
+                "mean": mean,
+                "min": min_val,
+                "max": max_val,
+                "sorted_list": sorted_ints,
+            }
+
+        # 计算中位数和四分位数
+        def calculate_quartiles(sorted_ints):
+            def get_quartile_index(p: float) -> float:
+                pos = (n - 1) * p
+                i = int(pos)
+                frac = pos - i
+                return (
+                    sorted_ints[i] + frac * (sorted_ints[i + 1] - sorted_ints[i])
+                    if i < n - 1
+                    else sorted_ints[i]
+                )
+
+            q1 = get_quartile_index(0.25) if n > 1 else sorted_ints[0]
+            median = get_quartile_index(0.5) if n > 1 else sorted_ints[0]
+            q3 = get_quartile_index(0.75) if n > 1 else sorted_ints[0]
+            return q1, median, q3
+
+        # 计算离散度指标
+        def calculate_dispersion(mean: float):
+            variance = sum((x - mean) ** 2 for x in ints) / n
+            std_dev = self.math.sqrt(variance)
+            mad = sum(abs(x - mean) for x in ints) / n
+            return {"variance": variance, "std_dev": std_dev, "mad": mad}
+
+        # 计算分布特征
+        def calculate_distribution(mean: float, std_dev: float):
+            if std_dev == 0:
+                return {"skewness": 0, "kurtosis": 0}
+
+            skewness = (sum((x - mean) ** 3 for x in ints) / n) / (std_dev**3)
+            kurtosis = (sum((x - mean) ** 4 for x in ints) / n) / (std_dev**4)
+            return {"skewness": skewness, "kurtosis": kurtosis - 3}  # 返回超额峰度
+
+        # 根据请求的统计量计算并返回结果
+        basic = calculate_basic()
+        sorted_ints = basic["sorted_list"]
+
+        if stat_mode == "count":
+            return basic["count"]
+
+        if stat_mode == "sum":
+            return basic["sum"]
+
+        if stat_mode == "mean":
+            return basic["mean"]
+
+        if stat_mode == "min":
+            return basic["min"]
+
+        if stat_mode == "max":
+            return basic["max"]
+
+        if stat_mode == "range":
+            return basic["max"] - basic["min"]
+
+        if stat_mode == "median":
+            return calculate_quartiles(sorted_ints)[1]
+
+        if stat_mode == "quartiles":
+            return calculate_quartiles(sorted_ints)
+
+        if stat_mode == "iqr":
+            q1, _, q3 = calculate_quartiles(sorted_ints)
+            return q3 - q1
+
+        if stat_mode == "mode":
+            count_dict = self.Counter(ints)
+            max_count = max(count_dict.values())
+            return [k for k, v in count_dict.items() if v == max_count]
+
+        if stat_mode == "variance":
+            return calculate_dispersion(basic["mean"])["variance"]
+
+        if stat_mode == "std_dev":
+            return calculate_dispersion(basic["mean"])["std_dev"]
+
+        if stat_mode == "mad":
+            return calculate_dispersion(basic["mean"])["mad"]
+
+        if stat_mode == "skewness":
+            dispersion = calculate_dispersion(basic["mean"])
+            return calculate_distribution(basic["mean"], dispersion["std_dev"])[
+                "skewness"
+            ]
+
+        if stat_mode == "kurtosis":
+            dispersion = calculate_dispersion(basic["mean"])
+            return calculate_distribution(basic["mean"], dispersion["std_dev"])[
+                "kurtosis"
+            ]
+
+        if stat_mode == "frequency":
+            return dict(self.Counter(ints))
+
+        if stat_mode == "sorted_list":
+            return sorted_ints
+
+        if stat_mode == "unique_values":
+            return sorted(set(ints))
+
+        if stat_mode == "cumulative_sum":
+            return [sum(ints[: i + 1]) for i in range(n)]
+
+        if stat_mode == "proportions":
+            total = basic["sum"]
+            return [x / total for x in ints]
+
+        if stat_mode == "z_scores":
+            dispersion = calculate_dispersion(basic["mean"])
+            std_dev = dispersion["std_dev"]
+            if std_dev == 0:
+                return [0] * n
+            return [(x - basic["mean"]) / std_dev for x in ints]
+
+        raise ValueError(f"未知的统计量名称: {stat_mode}")
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -923,6 +1130,7 @@ NODE_CLASS_MAPPINGS = {
     "timer": timer,
     "Image_Resize": Image_Resize,
     "Prism_Mirage": Prism_Mirage,
+    "int_calculate_statistics": int_calculate_statistics,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount(mki-获取第N张图像)",
@@ -942,4 +1150,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "timer": "timer(mki-计时器)",
     "Image_Resize": "Image_Resize(mki-图像大小调整)",
     "Prism_Mirage": "Prism_Mirage(mki-光棱坦克)",
+    "int_calculate_statistics": "int_calculate_statistics(mki-整数计算统计)",
 }
