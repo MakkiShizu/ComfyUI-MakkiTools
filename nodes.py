@@ -728,6 +728,7 @@ class timer:
 
     RETURN_TYPES = (any_type, "TIMER_MAKKI", "INT", "STRING")
     RETURN_NAMES = ("any", "timer", "time_ms", "time_str")
+    OUTPUT_NODE = True
     FUNCTION = "timer"
     CATEGORY = "MakkiTools"
 
