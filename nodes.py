@@ -811,7 +811,8 @@ class Image_Resize:
             },
         }
 
-    RETURN_TYPES = ("IMAGE",)
+    RETURN_TYPES = ("IMAGE", "INT", "INT")
+    RETURN_NAMES = ("image", "width", "height")
     FUNCTION = "Image_Resize"
     CATEGORY = "MakkiTools"
 
@@ -885,7 +886,7 @@ class Image_Resize:
 
             new_image = torch.zeros((1, new_height, new_width, 3), dtype=torch.float32)
 
-        return (new_image,)
+        return (new_image, new_width, new_height)
 
 
 class Prism_Mirage:
