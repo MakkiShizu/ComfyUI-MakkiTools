@@ -804,6 +804,10 @@ class Image_Resize:
                     "INT",
                     {"min": 1, "max": 8192, "step": 1, "defaultInput": True},
                 ),
+                "short_side": (
+                    "INT",
+                    {"min": 1, "max": 8192, "step": 1, "defaultInput": True},
+                ),
             },
         }
 
@@ -820,6 +824,7 @@ class Image_Resize:
         image=None,
         width=None,
         height=None,
+        short_side=None,
     ):
         if image is not None:
             original_height, original_width = image.shape[1:3]
@@ -831,7 +836,19 @@ class Image_Resize:
 
         aspect_ratio = original_width / original_height
 
-        if width is not None and height is not None:
+        if short_side is not None and width is None and height is None:
+            if original_width <= original_height:
+                new_width = short_side
+                new_height = short_side / aspect_ratio
+                new_height = max(GCD, round(new_height / GCD) * GCD)
+            else:
+                new_height = short_side
+                new_width = short_side * aspect_ratio
+                new_width = max(GCD, round(new_width / GCD) * GCD)
+            new_width = int(new_width)
+            new_height = int(new_height)
+
+        elif width is not None and height is not None:
             new_width, new_height = width, height
         elif width is not None:
             new_width = width
@@ -843,8 +860,9 @@ class Image_Resize:
             new_height = int((target_pixels / aspect_ratio) ** 0.5)
             new_width = int(new_height * aspect_ratio)
 
-        new_width = max(GCD, round(new_width / GCD) * GCD)
-        new_height = max(GCD, round(new_height / GCD) * GCD)
+        if short_side is None:
+            new_width = max(GCD, round(new_width / GCD) * GCD)
+            new_height = max(GCD, round(new_height / GCD) * GCD)
 
         if image is not None:
             import comfy.utils
