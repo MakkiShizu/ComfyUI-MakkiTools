@@ -861,7 +861,7 @@ class Image_Resize:
             new_height = int((target_pixels / aspect_ratio) ** 0.5)
             new_width = int(new_height * aspect_ratio)
 
-        if short_side is None:
+        if short_side is None or width is not None or height is not None:
             new_width = max(GCD, round(new_width / GCD) * GCD)
             new_height = max(GCD, round(new_height / GCD) * GCD)
 
