@@ -1132,6 +1132,128 @@ class int_calculate_statistics:
         raise ValueError(f"未知的统计量名称: {stat_mode}")
 
 
+class BatchLoraLoader:
+    import folder_paths
+    import comfy.utils
+    import comfy.sd
+
+    def __init__(self):
+        self.loaded_lora = None
+
+    @classmethod
+    def INPUT_TYPES(s):
+        inputs = {
+            "required": {
+                "model": (
+                    "MODEL",
+                    {"tooltip": "The diffusion model the LoRA will be applied to."},
+                ),
+                "clip": (
+                    "CLIP",
+                    {"tooltip": "The CLIP model the LoRA will be applied to."},
+                ),
+                "loras_count": (
+                    "INT",
+                    {"default": 3, "min": 1, "max": 50, "step": 1},
+                ),
+                "loras_num": (
+                    "INT",
+                    {"default": -1, "min": -1, "max": 50, "step": 1},
+                ),
+            }
+        }
+
+        for i in range(1, 50):
+            inputs["required"][f"lora_name_{i}"] = (
+                (
+                    s.folder_paths.get_filename_list("loras"),
+                    {"tooltip": "The name of the LoRA."},
+                ),
+            )
+            inputs["required"][f"strength_model_{i}"] = (
+                "FLOAT",
+                {
+                    "default": 1.0,
+                    "min": -100.0,
+                    "max": 100.0,
+                    "step": 0.01,
+                    "tooltip": "How strongly to modify the diffusion model. This value can be negative.",
+                },
+            )
+            inputs["required"][f"strength_clip_{i}"] = (
+                "FLOAT",
+                {
+                    "default": 1.0,
+                    "min": -100.0,
+                    "max": 100.0,
+                    "step": 0.01,
+                    "tooltip": "How strongly to modify the CLIP model. This value can be negative.",
+                },
+            )
+
+        return inputs
+
+    RETURN_TYPES = ("MODEL", "CLIP")
+    OUTPUT_TOOLTIPS = ("The modified diffusion model.", "The modified CLIP model.")
+    FUNCTION = "BatchLoraLoader"
+
+    CATEGORY = "MakkiTools"
+    DESCRIPTION = "LoRAs are used to modify diffusion and CLIP models, altering the way in which latents are denoised such as applying styles. Multiple LoRA nodes can be linked together."
+
+    def BatchLoraLoader(self, model, clip, loras_count, loras_num, **kwargs):
+        # 提取所有LoRA参数
+        selected_lora_name = [
+            kwargs[f"lora_name_{i}"] for i in range(1, loras_count + 1)
+        ]
+        selected_strength_model = [
+            kwargs[f"strength_model_{i}"] for i in range(1, loras_count + 1)
+        ]
+        selected_strength_clip = [
+            kwargs[f"strength_clip_{i}"] for i in range(1, loras_count + 1)
+        ]
+
+        # 确定要加载的LoRA索引
+        if loras_num == -1:  # 加载全部
+            lora_indices = range(loras_count)
+        else:  # 加载指定索引的LoRA
+            lora_indices = [loras_num - 1]  # 转换为0-based索引
+
+        current_model, current_clip = model, clip
+
+        # 遍历所有需要加载的LoRA
+        for i in lora_indices:
+            lora_name = selected_lora_name[i]
+            strength_model = selected_strength_model[i]
+            strength_clip = selected_strength_clip[i]
+
+            # 跳过强度为0的LoRA
+            if strength_model == 0 and strength_clip == 0:
+                continue
+
+            # 获取LoRA路径
+            lora_path = self.folder_paths.get_full_path_or_raise("loras", lora_name)
+            lora = None
+
+            # 检查缓存
+            if self.loaded_lora is not None:
+                if self.loaded_lora[0] == lora_path:
+                    lora = self.loaded_lora[1]
+                else:
+                    self.loaded_lora = None  # 缓存不匹配时清除
+
+            # 需要时加载LoRA
+            if lora is None:
+                lora = self.utils.load_torch_file(lora_path, safe_load=True)
+                self.loaded_lora = (lora_path, lora)  # 更新缓存
+
+            # 应用LoRA到当前模型
+            current_model, current_clip = self.sd.load_lora_for_models(
+                current_model, current_clip, lora, strength_model, strength_clip
+            )
+
+        return (current_model, current_clip)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount": GetImageNthCount,
     "ImageChannelSeparate": ImageChannelSeparate,
@@ -1151,6 +1273,7 @@ NODE_CLASS_MAPPINGS = {
     "Image_Resize": Image_Resize,
     "Prism_Mirage": Prism_Mirage,
     "int_calculate_statistics": int_calculate_statistics,
+    "BatchLoraLoader": BatchLoraLoader,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount": "GetImageNthCount(mki-获取第N张图像)",
@@ -1171,4 +1294,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Image_Resize": "Image_Resize(mki-图像大小调整)",
     "Prism_Mirage": "Prism_Mirage(mki-光棱坦克)",
     "int_calculate_statistics": "int_calculate_statistics(mki-整数计算统计)",
+    "BatchLoraLoader": "BatchLoraLoader(mki-批量LoRA加载)",
 }
