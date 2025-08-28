@@ -1197,6 +1197,12 @@ class BatchLoraLoader:
     DESCRIPTION = "LoRAs are used to modify diffusion and CLIP models, altering the way in which latents are denoised such as applying styles. Multiple LoRA nodes can be linked together."
 
     def BatchLoraLoader(self, model, clip, loras_count, loras_num, **kwargs):
+        if loras_num == 0:  # 为0时全部跳过
+            return (model, clip)
+
+        if loras_num > loras_count:  # 越界时加载全部LoRA
+            loras_num = -1
+
         # 提取所有LoRA参数
         selected_lora_name = [
             kwargs[f"lora_name_{i}"] for i in range(1, loras_count + 1)
