@@ -1142,6 +1142,7 @@ class BatchLoraLoader:
 
     @classmethod
     def INPUT_TYPES(s):
+        loras = ["None"] + s.folder_paths.get_filename_list("loras")
         inputs = {
             "required": {
                 "model": (
@@ -1164,12 +1165,7 @@ class BatchLoraLoader:
         }
 
         for i in range(1, 50):
-            inputs["required"][f"lora_name_{i}"] = (
-                (
-                    s.folder_paths.get_filename_list("loras"),
-                    {"tooltip": "The name of the LoRA."},
-                ),
-            )
+            inputs["required"][f"lora_name_{i}"] = (loras,)
             inputs["required"][f"strength_model_{i}"] = (
                 "FLOAT",
                 {
