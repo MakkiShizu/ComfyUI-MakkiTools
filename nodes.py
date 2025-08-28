@@ -1239,11 +1239,11 @@ class BatchLoraLoader:
 
             # 需要时加载LoRA
             if lora is None:
-                lora = self.utils.load_torch_file(lora_path, safe_load=True)
+                lora = self.comfy.utils.load_torch_file(lora_path, safe_load=True)
                 self.loaded_lora = (lora_path, lora)  # 更新缓存
 
             # 应用LoRA到当前模型
-            current_model, current_clip = self.sd.load_lora_for_models(
+            current_model, current_clip = self.comfy.sd.load_lora_for_models(
                 current_model, current_clip, lora, strength_model, strength_clip
             )
 
