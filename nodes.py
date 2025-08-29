@@ -1228,6 +1228,10 @@ class BatchLoraLoader:
             strength_model = selected_strength_model[i]
             strength_clip = selected_strength_clip[i]
 
+            # 跳过None
+            if lora_name == "None":
+                continue
+
             # 跳过强度为0的LoRA
             if strength_model == 0 and strength_clip == 0:
                 continue
