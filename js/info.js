@@ -1,6 +1,10 @@
 import { app } from "../../../scripts/app.js";
 import { ComfyWidgets } from "../../../scripts/widgets.js";
-const TARGET_NODES = new Set(["Environment_INFO", "show_type", "timer"]);
+const TARGET_NODES = new Set([
+  "Environment_INFO_makki",
+  "show_type_makki",
+  "timer_makki",
+]);
 
 app.registerExtension({
   name: "ComfyUI-MakkiTools.Environment_INFO.INFO",

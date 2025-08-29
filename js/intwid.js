@@ -134,7 +134,7 @@ function extendNodeForDynamicInputs(nodeType, inputName = "int") {
 }
 
 // 统一注册节点扩展
-const NODES_TO_EXTEND = ["int_calculate_statistics"];
+const NODES_TO_EXTEND = ["int_calculate_statistics_makki"];
 
 app.registerExtension({
   name: "ComfyUI-MakkiTools.intwid",

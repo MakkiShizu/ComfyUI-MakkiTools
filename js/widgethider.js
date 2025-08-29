@@ -37,7 +37,7 @@ function toggleWidget(node, widget, show = false, suffix = "") {
 
 function handleVisibility(node, countValue, node_type) {
   const baseNamesMap = {
-    BatchLoraLoader: ["lora_name", "strength_model", "strength_clip"],
+    BatchLoraLoader_makki: ["lora_name", "strength_model", "strength_clip"],
   };
 
   const baseNames = baseNamesMap[node_type];
@@ -51,7 +51,7 @@ function handleVisibility(node, countValue, node_type) {
 }
 
 const nodeWidgetHandlers = {
-  BatchLoraLoader: {
+  BatchLoraLoader_makki: {
     loras_count: handleloras,
   },
 };
@@ -65,7 +65,7 @@ function widgetLogic(node, widget) {
 }
 
 function handleloras(node, widget) {
-  handleVisibility(node, widget.value, "BatchLoraLoader");
+  handleVisibility(node, widget.value, "BatchLoraLoader_makki");
 }
 
 app.registerExtension({

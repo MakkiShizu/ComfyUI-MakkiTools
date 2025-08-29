@@ -135,11 +135,11 @@ function extendNodeForDynamicInputs(nodeType, inputName = "image") {
 
 // 统一注册节点扩展
 const NODES_TO_EXTEND = [
-  "ImageCountConcatenate",
-  "ImageWidthStitch",
-  "ImageHeigthStitch",
-  "AnyImageStitch",
-  "AnyImagetoConditioning_flux_kontext",
+  "ImageCountConcatenate_makki",
+  "ImageWidthStitch_makki",
+  "ImageHeigthStitch_makki",
+  "AnyImageStitch_makki",
+  "AnyImagetoConditioning_flux_kontext_makki",
 ];
 
 app.registerExtension({
