@@ -4,6 +4,11 @@ self custom nodes for ComfyUI.
 
 Sometimes I have to create simple nodes when needed, but can't find existing ones. It might just be cases of reinventing the wheel.
 
+# 2025/08/29:Major modification
+
+- **To ensure that future and current nodes do not conflict with other nodes, all node indices have been renamed. If a node is not found, you will need to pull the node again. I'm apologize for the inconvenience.**
+- **为确保未来和当前节点不会与其他节点冲突，所有节点索引都已重命名。如果找不到节点，则需要重新拉取该节点。对于给您带来的不便，我深表歉意。**
+
 ---
 
 AutoLoop_create_pseudo_loop_video: Transform un loop video with small variations into loop video(used Alpha trans to connect).
