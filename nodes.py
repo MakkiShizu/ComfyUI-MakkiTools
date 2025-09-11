@@ -1352,7 +1352,7 @@ class UniversalInstaller:
         except Exception as e:
             status_message = f"❌ 发生意外错误 (Exception):\n{str(e)}"
 
-        return (status_message,)
+        return {"ui": {"info": (status_message,)}, "result": (status_message,)}
 
 
 NODE_CLASS_MAPPINGS = {

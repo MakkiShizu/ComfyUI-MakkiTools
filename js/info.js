@@ -4,6 +4,7 @@ const TARGET_NODES = new Set([
   "Environment_INFO_makki",
   "show_type_makki",
   "timer_makki",
+  "UniversalInstaller_makki",
 ]);
 
 app.registerExtension({
