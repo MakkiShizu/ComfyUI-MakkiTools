@@ -1273,13 +1273,27 @@ class UniversalInstaller:
                     },
                 ),
                 "backend": (["pip", "uv"], {"default": "pip"}),
+                "mirror_source": (
+                    ["default", "tsinghua", "aliyun", "douban", "ustc", "custom"],
+                    {
+                        "default": "default",
+                        "tooltip": "Select the mirror source, use the content in extra_index_url when custom.",
+                    },
+                ),
+                "update_if_no_version": (
+                    "BOOLEAN",
+                    {
+                        "default": False,
+                        "tooltip": "When the package name does not specify a version, should the -U parameter be used to update to the latest version.",
+                    },
+                ),
             },
             "optional": {
                 "extra_index_url": (
                     "STRING",
                     {
                         "default": "",
-                        "tooltip": "Additional index URLs (e.g., private sources), optional.",
+                        "tooltip": "Additional index URLs (e.g., private sources), optional. Only used when 'mirror_source' is set to 'custom'.",
                     },
                 ),
             },
@@ -1294,7 +1308,14 @@ class UniversalInstaller:
     def IS_CHANGED(s, **kwargs):
         return float("nan")
 
-    def UniversalInstaller(self, package_name, backend, extra_index_url):
+    def UniversalInstaller(
+        self,
+        package_name,
+        backend,
+        mirror_source,
+        update_if_no_version,
+        extra_index_url="",
+    ):
         """
         安装指定的Python库
         """
@@ -1310,12 +1331,29 @@ class UniversalInstaller:
 
         if backend == "uv":
             install_cmd = [sys.executable, "-m", "uv", "pip", "install"]
-            if extra_index_url:
-                install_cmd.extend(["--extra-index-url", extra_index_url])
         else:  # pip
             install_cmd = [sys.executable, "-m", "pip", "install"]
-            if extra_index_url:
-                install_cmd.extend(["--extra-index-url", extra_index_url])
+
+        mirror_urls = {
+            "tsinghua": "https://pypi.tuna.tsinghua.edu.cn/simple",
+            "aliyun": "https://mirrors.aliyun.com/pypi/simple/",
+            "douban": "https://pypi.douban.com/simple/",
+            "ustc": "https://pypi.mirrors.ustc.edu.cn/simple/",
+        }
+
+        if mirror_source != "default":
+            if mirror_source == "custom" and extra_index_url:
+                install_cmd.extend(["--extra-index-url", extra_index_url.strip()])
+            elif mirror_source in mirror_urls:
+                install_cmd.extend(["-i", mirror_urls[mirror_source]])
+
+        if (
+            update_if_no_version
+            and "==" not in package_name
+            and ">" not in package_name
+            and "<" not in package_name
+        ):
+            install_cmd.append("-U")
 
         install_cmd.append(package_name.strip())
 
@@ -1345,7 +1383,7 @@ class UniversalInstaller:
                 status_message = f"✅ 成功安装Successfully installed: {package_name}\n\n请完全重启 ComfyUI 以使更改生效。Please fully restart ComfyUI to apply the changes.\n\n--- 安装日志Installation Log ---\n{''.join(output_log)}"
             else:
                 full_log = "".join(output_log)
-                status_message = f"❌ 安装失败 (Installation failed)\n(返回码 (Return): {process.returncode}):\n{full_log}"
+                status_message = f"❌ 安装失败 (Installation failed)\n返回码 (Return): {process.returncode}:\n{full_log}"
 
         except subprocess.CalledProcessError as e:
             status_message = f"❌ 安装过程出错 (CalledProcessError):\n{str(e)}"
