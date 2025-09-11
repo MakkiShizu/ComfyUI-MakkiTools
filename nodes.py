@@ -1260,6 +1260,101 @@ class BatchLoraLoader:
         return (current_model, current_clip)
 
 
+class UniversalInstaller:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "package_name": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "The name of the package to install, such as 'requests' or 'tipo-kgen==0.2.0'.",
+                    },
+                ),
+                "backend": (["pip", "uv"], {"default": "pip"}),
+            },
+            "optional": {
+                "extra_index_url": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "Additional index URLs (e.g., private sources), optional.",
+                    },
+                ),
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    OUTPUT_NODE = True
+    FUNCTION = "UniversalInstaller"
+    CATEGORY = "MakkiTools"
+
+    @classmethod
+    def IS_CHANGED(s, **kwargs):
+        return float("nan")
+
+    def UniversalInstaller(self, package_name, backend, extra_index_url):
+        """
+        安装指定的Python库
+        """
+        import subprocess
+        import sys
+
+        if not package_name.strip():
+            return (
+                "❌ 错误：请输入要安装的库名称。\n❌ Error: Please enter the name of the package to install.",
+            )
+
+        install_cmd = []
+
+        if backend == "uv":
+            install_cmd = [sys.executable, "-m", "uv", "pip", "install"]
+            if extra_index_url:
+                install_cmd.extend(["--extra-index-url", extra_index_url])
+        else:  # pip
+            install_cmd = [sys.executable, "-m", "pip", "install"]
+            if extra_index_url:
+                install_cmd.extend(["--extra-index-url", extra_index_url])
+
+        install_cmd.append(package_name.strip())
+
+        try:
+            print(
+                f"开始安装库: \nStart installing package: \n{package_name}\n使用后端: \nUsing backend: \n{backend}\n"
+            )
+            print(f"{' '.join(install_cmd)}")
+
+            process = subprocess.Popen(
+                install_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+
+            output_log = []
+
+            for line in iter(process.stdout.readline, ""):
+                print(line, end="")
+                output_log.append(line)
+            process.wait()
+
+            if process.returncode == 0:
+                status_message = f"✅ 成功安装Successfully installed: {package_name}\n\n请完全重启 ComfyUI 以使更改生效。Please fully restart ComfyUI to apply the changes.\n\n--- 安装日志Installation Log ---\n{''.join(output_log)}"
+            else:
+                full_log = "".join(output_log)
+                status_message = f"❌ 安装失败 (Installation failed)\n(返回码 (Return): {process.returncode}):\n{full_log}"
+
+        except subprocess.CalledProcessError as e:
+            status_message = f"❌ 安装过程出错 (CalledProcessError):\n{str(e)}"
+        except Exception as e:
+            status_message = f"❌ 发生意外错误 (Exception):\n{str(e)}"
+
+        return (status_message,)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount_makki": GetImageNthCount,
     "ImageChannelSeparate_makki": ImageChannelSeparate,
@@ -1280,6 +1375,7 @@ NODE_CLASS_MAPPINGS = {
     "Prism_Mirage_makki": Prism_Mirage,
     "int_calculate_statistics_makki": int_calculate_statistics,
     "BatchLoraLoader_makki": BatchLoraLoader,
+    "UniversalInstaller_makki": UniversalInstaller,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount_makki": "GetImageNthCount(mki-获取第N张图像)",
@@ -1301,4 +1397,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Prism_Mirage_makki": "Prism_Mirage(mki-光棱坦克)",
     "int_calculate_statistics_makki": "int_calculate_statistics(mki-整数计算统计)",
     "BatchLoraLoader_makki": "BatchLoraLoader(mki-批量LoRA加载)",
+    "UniversalInstaller_makki": "UniversalInstaller(mki-安装Python包)",
 }
