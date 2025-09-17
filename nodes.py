@@ -1415,8 +1415,13 @@ class get_folder_info:
                         "tooltip": "要获取的第几个文件名（按名称排序），从1开始计数",
                     },
                 ),
-            },
-            "optional": {
+                "output_full_path": (
+                    "BOOLEAN",
+                    {
+                        "default": False,
+                        "tooltip": "如果为True，输出完整路径；否则只输出文件名",
+                    },
+                ),
                 "include_subfolders": (
                     "BOOLEAN",
                     {
@@ -1431,72 +1436,243 @@ class get_folder_info:
                         "tooltip": "文件筛选器，例如 '*.txt' 或 'image*.png'",
                     },
                 ),
+                "file_types": (
+                    ["all", "image", "text", "audio", "video"],
+                    {
+                        "default": "all",
+                        "tooltip": "文件类型筛选",
+                    },
+                ),
+                "sort_by": (
+                    ["name", "date_modified", "size"],
+                    {
+                        "default": "name",
+                        "tooltip": "排序方式",
+                    },
+                ),
+                "sort_order": (
+                    ["ascending", "descending"],
+                    {
+                        "default": "ascending",
+                        "tooltip": "排序顺序",
+                    },
+                ),
+                "limit": (
+                    "INT",
+                    {
+                        "default": 0,
+                        "min": 0,
+                        "tooltip": "限制返回的文件数量，0表示无限制",
+                    },
+                ),
+                "regex_filter": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "正则表达式筛选，例如 '^image.*\\.png$'",
+                    },
+                ),
             },
         }
 
-    RETURN_TYPES = ("STRING", "LIST", "STRING", "LIST", "STRING", "STRING")
+    RETURN_TYPES = ("STRING", "LIST", "STRING", "STRING", "INT", "BOOLEAN", "STRING")
     RETURN_NAMES = (
-        "filenames_str",
-        "filenames_list",
-        "full_paths_str",
-        "full_paths_list",
-        "nth_filename",
+        "output_string",
+        "output_list",
+        "nth_item",
         "tree_structure",
+        "file_count",
+        "has_files",
+        "error_message",
     )
     FUNCTION = "get_folder_info"
     CATEGORY = "MakkiTools"
 
     def get_folder_info(
-        self, folder_path, file_index, include_subfolders=False, file_filter="*"
+        self,
+        folder_path,
+        file_index,
+        output_full_path=False,
+        include_subfolders=False,
+        file_filter="*",
+        file_types="all",
+        sort_by="name",
+        sort_order="ascending",
+        limit=0,
+        regex_filter="",
     ):
         import os
+
+        error_msg = ""
+        files = []
+
+        try:
+            # 检查文件夹是否存在
+            if not os.path.exists(folder_path):
+                error_msg = f"The folder does not exist: {folder_path}"
+                return self.return_error(error_msg)
+
+            if not os.path.isdir(folder_path):
+                error_msg = f"The path is not a folder: {folder_path}"
+                return self.return_error(error_msg)
+
+            # 收集文件
+            if include_subfolders:
+                all_items = []
+                for root, dirs, walk_files in os.walk(folder_path):
+                    for file in walk_files:
+                        full_path = os.path.join(root, file)
+                        rel_path = os.path.relpath(full_path, folder_path)
+
+                        # 应用所有筛选条件
+                        if self.apply_filters(
+                            file, full_path, file_filter, file_types, regex_filter
+                        ):
+                            all_items.append(
+                                (
+                                    rel_path,
+                                    full_path,
+                                    os.path.getmtime(full_path),
+                                    os.path.getsize(full_path),
+                                )
+                            )
+            else:
+                all_items = []
+                for item in os.listdir(folder_path):
+                    full_path = os.path.join(folder_path, item)
+                    if os.path.isfile(full_path):
+                        # 应用所有筛选条件
+                        if self.apply_filters(
+                            item, full_path, file_filter, file_types, regex_filter
+                        ):
+                            all_items.append(
+                                (
+                                    item,
+                                    full_path,
+                                    os.path.getmtime(full_path),
+                                    os.path.getsize(full_path),
+                                )
+                            )
+
+            # 排序
+            if sort_by == "name":
+                index = 0
+            elif sort_by == "date_modified":
+                index = 2
+            elif sort_by == "size":
+                index = 3
+
+            all_items.sort(key=lambda x: x[index], reverse=(sort_order == "descending"))
+
+            # 限制数量
+            if limit > 0:
+                all_items = all_items[:limit]
+
+            # 提取文件名和路径
+            files = [item[0] for item in all_items]  # 相对路径或文件名
+            full_paths = [item[1] for item in all_items]  # 完整路径
+
+            # 根据 output_full_path 参数选择输出格式
+            if output_full_path:
+                output_items = full_paths
+            else:
+                output_items = files
+
+            # 输出第n个文件
+            nth_item = (
+                output_items[file_index - 1]
+                if 0 < file_index <= len(output_items)
+                else "Index out of range."
+            )
+
+            # 生成表状文件夹结构字符串
+            tree_structure = self.generate_tree_structure(
+                folder_path, files, include_subfolders
+            )
+
+            # 返回所有信息
+            return (
+                "\n".join(output_items),  # 所有文件（字符串，每行一个）
+                output_items,  # 所有文件（列表）
+                nth_item,  # 第n个文件
+                tree_structure,  # 表状文件夹结构
+                len(output_items),  # 文件总数
+                len(output_items) > 0,  # 是否有文件
+                "",  # 错误信息（空表示无错误）
+            )
+
+        except Exception as e:
+            error_msg = f"Error: {str(e)}"
+            return self.return_error(error_msg)
+
+    def return_error(self, error_msg):
+        """返回错误信息"""
+        return (
+            "",  # output_string
+            [],  # output_list
+            "",  # nth_item
+            "",  # tree_structure
+            0,  # file_count
+            False,  # has_files
+            error_msg,  # error_message
+        )
+
+    def apply_filters(self, filename, full_path, file_filter, file_types, regex_filter):
+        """应用所有筛选条件"""
+        import os
+        import re
         import fnmatch
 
-        if include_subfolders:
-            all_items = []
-            for root, dirs, files in os.walk(folder_path):
-                for file in files:
-                    if fnmatch.fnmatch(file, file_filter):
-                        rel_path = os.path.relpath(
-                            os.path.join(root, file), folder_path
-                        )
-                        all_items.append(rel_path)
-        else:
-            all_items = [
-                item
-                for item in os.listdir(folder_path)
-                if os.path.isfile(os.path.join(folder_path, item))
-                and fnmatch.fnmatch(item, file_filter)
-            ]
+        # 通配符筛选
+        if not fnmatch.fnmatch(filename, file_filter):
+            return False
 
-        # 分离文件和文件夹（如果需要）
-        files = sorted(all_items)  # 直接排序所有匹配的文件
+        # 正则表达式筛选
+        if regex_filter and not re.search(regex_filter, filename):
+            return False
 
-        # 获取所有文件的完整路径
-        if include_subfolders:
-            full_paths = [os.path.join(folder_path, item) for item in files]
-        else:
-            full_paths = [os.path.join(folder_path, item) for item in files]
+        # 文件类型筛选
+        if file_types != "all":
+            ext = os.path.splitext(filename)[1].lower()
+            if file_types == "image" and ext not in [
+                ".jpg",
+                ".jpeg",
+                ".png",
+                ".gif",
+                ".bmp",
+                ".tiff",
+                ".webp",
+            ]:
+                return False
+            elif file_types == "text" and ext not in [
+                ".txt",
+                ".csv",
+                ".json",
+                ".xml",
+                ".html",
+                ".htm",
+                ".md",
+            ]:
+                return False
+            elif file_types == "audio" and ext not in [
+                ".mp3",
+                ".wav",
+                ".ogg",
+                ".flac",
+                ".aac",
+            ]:
+                return False
+            elif file_types == "video" and ext not in [
+                ".mp4",
+                ".avi",
+                ".mov",
+                ".wmv",
+                ".flv",
+                ".webm",
+            ]:
+                return False
 
-        # 输出第n个文件名（按名称排序，n从1开始计数）
-        nth_file = (
-            files[file_index - 1] if 0 < file_index <= len(files) else "索引超出范围"
-        )
-
-        # 生成表状文件夹结构字符串
-        tree_structure = self.generate_tree_structure(
-            folder_path, files, include_subfolders
-        )
-
-        # 返回所有要求的信息
-        return (
-            "\n".join(files),  # 所有文件名（字符串，每行一个）
-            files,  # 所有文件名（列表）
-            "\n".join(full_paths),  # 所有文件完整路径（字符串，每行一个）
-            full_paths,  # 所有文件完整路径（列表）
-            nth_file,  # 第n个文件名
-            tree_structure,  # 表状文件夹结构
-        )
+        return True
 
     def generate_tree_structure(self, folder_path, items, include_subfolders=False):
         """生成文件夹的表状树结构字符串"""
