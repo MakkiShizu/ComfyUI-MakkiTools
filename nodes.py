@@ -1393,6 +1393,162 @@ class UniversalInstaller:
         return {"ui": {"info": (status_message,)}, "result": (status_message,)}
 
 
+class get_folder_info:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "folder_path": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "要扫描的文件夹路径，例如 'C:/Users/MyUser/Documents' 或 '/home/user/documents'",
+                    },
+                ),
+                "file_index": (
+                    "INT",
+                    {
+                        "default": 1,
+                        "min": 1,
+                        "max": 1000,
+                        "step": 1,
+                        "tooltip": "要获取的第几个文件名（按名称排序），从1开始计数",
+                    },
+                ),
+            },
+            "optional": {
+                "include_subfolders": (
+                    "BOOLEAN",
+                    {
+                        "default": False,
+                        "tooltip": "是否包含子文件夹中的文件",
+                    },
+                ),
+                "file_filter": (
+                    "STRING",
+                    {
+                        "default": "*",
+                        "tooltip": "文件筛选器，例如 '*.txt' 或 'image*.png'",
+                    },
+                ),
+            },
+        }
+
+    RETURN_TYPES = ("STRING", "LIST", "STRING", "LIST", "STRING", "STRING")
+    RETURN_NAMES = (
+        "filenames_str",
+        "filenames_list",
+        "full_paths_str",
+        "full_paths_list",
+        "nth_filename",
+        "tree_structure",
+    )
+    FUNCTION = "get_folder_info"
+    CATEGORY = "MakkiTools"
+
+    def get_folder_info(
+        self, folder_path, file_index, include_subfolders=False, file_filter="*"
+    ):
+        import os
+        import fnmatch
+
+        if include_subfolders:
+            all_items = []
+            for root, dirs, files in os.walk(folder_path):
+                for file in files:
+                    if fnmatch.fnmatch(file, file_filter):
+                        rel_path = os.path.relpath(
+                            os.path.join(root, file), folder_path
+                        )
+                        all_items.append(rel_path)
+        else:
+            all_items = [
+                item
+                for item in os.listdir(folder_path)
+                if os.path.isfile(os.path.join(folder_path, item))
+                and fnmatch.fnmatch(item, file_filter)
+            ]
+
+        # 分离文件和文件夹（如果需要）
+        files = sorted(all_items)  # 直接排序所有匹配的文件
+
+        # 获取所有文件的完整路径
+        if include_subfolders:
+            full_paths = [os.path.join(folder_path, item) for item in files]
+        else:
+            full_paths = [os.path.join(folder_path, item) for item in files]
+
+        # 输出第n个文件名（按名称排序，n从1开始计数）
+        nth_file = (
+            files[file_index - 1] if 0 < file_index <= len(files) else "索引超出范围"
+        )
+
+        # 生成表状文件夹结构字符串
+        tree_structure = self.generate_tree_structure(
+            folder_path, files, include_subfolders
+        )
+
+        # 返回所有要求的信息
+        return (
+            "\n".join(files),  # 所有文件名（字符串，每行一个）
+            files,  # 所有文件名（列表）
+            "\n".join(full_paths),  # 所有文件完整路径（字符串，每行一个）
+            full_paths,  # 所有文件完整路径（列表）
+            nth_file,  # 第n个文件名
+            tree_structure,  # 表状文件夹结构
+        )
+
+    def generate_tree_structure(self, folder_path, items, include_subfolders=False):
+        """生成文件夹的表状树结构字符串"""
+        import os
+
+        lines = [os.path.basename(folder_path) + "/"]
+
+        if include_subfolders:
+            # 对于包含子文件夹的情况，需要更复杂的树结构生成
+            dir_structure = {}
+            for item in items:
+                parts = item.split(os.sep)
+                current = dir_structure
+                for part in parts[:-1]:
+                    if part not in current:
+                        current[part] = {}
+                    current = current[part]
+                if "files" not in current:
+                    current["files"] = []
+                current["files"].append(parts[-1])
+
+            # 递归生成树结构
+            def build_tree(structure, prefix=""):
+                result = []
+                keys = sorted(structure.keys())
+                for i, key in enumerate(keys):
+                    is_last = i == len(keys) - 1
+                    new_prefix = prefix + ("    " if is_last else "│   ")
+                    result.append(prefix + ("└── " if is_last else "├── ") + key + "/")
+
+                    if isinstance(structure[key], dict):
+                        result.extend(build_tree(structure[key], new_prefix))
+                    elif key == "files":
+                        files = sorted(structure[key])
+                        for j, file in enumerate(files):
+                            file_is_last = j == len(files) - 1
+                            result.append(
+                                new_prefix + ("└── " if file_is_last else "├── ") + file
+                            )
+                return result
+
+            lines.extend(build_tree(dir_structure))
+        else:
+            # 简单情况：只显示当前文件夹
+            for i, item in enumerate(sorted(items)):
+                is_last = i == len(items) - 1
+                prefix = "└── " if is_last else "├── "
+                lines.append(prefix + item)
+
+        return "\n".join(lines)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount_makki": GetImageNthCount,
     "ImageChannelSeparate_makki": ImageChannelSeparate,
@@ -1414,6 +1570,7 @@ NODE_CLASS_MAPPINGS = {
     "int_calculate_statistics_makki": int_calculate_statistics,
     "BatchLoraLoader_makki": BatchLoraLoader,
     "UniversalInstaller_makki": UniversalInstaller,
+    "get_folder_info_makki": get_folder_info,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount_makki": "GetImageNthCount(mki-获取第N张图像)",
@@ -1436,4 +1593,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "int_calculate_statistics_makki": "int_calculate_statistics(mki-整数计算统计)",
     "BatchLoraLoader_makki": "BatchLoraLoader(mki-批量LoRA加载)",
     "UniversalInstaller_makki": "UniversalInstaller(mki-安装Python包)",
+    "get_folder_info_makki": "get_folder_info(mki-获取文件夹文件信息)",
 }
