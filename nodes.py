@@ -1725,6 +1725,21 @@ class get_folder_info:
         return "\n".join(lines)
 
 
+class BooleanSplitter:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {"input_bool": ("BOOLEAN", {"default": True})}}
+
+    RETURN_TYPES = ("BOOLEAN", "BOOLEAN")
+    RETURN_NAMES = ("input", "opposite")
+    FUNCTION = "BooleanSplitter"
+    CATEGORY = "MakkiTools"
+
+    def BooleanSplitter(self, input_bool):
+        opposite = not input_bool
+        return (input_bool, opposite)
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount_makki": GetImageNthCount,
     "ImageChannelSeparate_makki": ImageChannelSeparate,
@@ -1747,6 +1762,7 @@ NODE_CLASS_MAPPINGS = {
     "BatchLoraLoader_makki": BatchLoraLoader,
     "UniversalInstaller_makki": UniversalInstaller,
     "get_folder_info_makki": get_folder_info,
+    "BooleanSplitter_makki": BooleanSplitter,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount_makki": "GetImageNthCount(mki-获取第N张图像)",
@@ -1770,4 +1786,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BatchLoraLoader_makki": "BatchLoraLoader(mki-批量LoRA加载)",
     "UniversalInstaller_makki": "UniversalInstaller(mki-安装Python包)",
     "get_folder_info_makki": "get_folder_info(mki-获取文件夹文件信息)",
+    "BooleanSplitter_makki": "BooleanSplitter(mki-布尔值拆分)",
 }
