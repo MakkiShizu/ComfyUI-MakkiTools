@@ -80,6 +80,37 @@ Supported_Languages = [
     "Chinese(彝语)(ii)",
     "Chinese(苗语)(hmn)",
     "Chinese(壮语)(zyb)",
+    "assamese(as)",
+    "corsican(co)",
+    "Hill Mari(mrj)",
+    "Ewe(ee)",
+    "Frisian(fy)",
+    "Galician(gl)",
+    "Georgian(ka)",
+    "Kannada(kn)",
+    "Kazakh(kk)",
+    "Kyrgyz(ky)",
+    "Luxembourgish(lb)",
+    "Macedonian(mk)",
+    "Maori(mi)",
+    "Marathi(mr)",
+    "Meiteilon(mni-Mtei)",
+    "Nepali(ne)",
+    "Oriya(or)",
+    "Punjabi(pa)",
+    "Quechua(qu)",
+    "Scots Gaelic(gd)",
+    "Shona(sn)",
+    "Sindhi(sd)",
+    "Sinhala(si)",
+    "Somali(so)",
+    "Turkmen(tk)",
+    "Uighur(ug)",
+    "Uzbek(uz)",
+    "Xhosa(xh)",
+    "Yiddish(yi)",
+    "Yoruba(yo)",
+    "Zulu(zu)",
 ]
 LANGUAGE_MAPPING = {
     "google": {
@@ -157,6 +188,30 @@ LANGUAGE_MAPPING = {
         "zh-CHT": "zh-TW",
     },
     "utibet": {
+        "zh-CHS": "zh",
+    },
+    "modernMt": {
+        "zh-CHS": "zh",
+    },
+    "volcEngine": {
+        "zh-CHS": "zh",
+    },
+    "iflyrec": {
+        "zh-CHS": "zh",
+    },
+    "mirai": {
+        "zh-CHS": "zh",
+    },
+    "translateCom": {
+        "zh-CHS": "zh",
+    },
+    "tilde": {
+        "zh-CHS": "zh",
+    },
+    "lingvanex": {
+        "zh-CHS": "zh",
+    },
+    "niutrans": {
         "zh-CHS": "zh",
     },
 }

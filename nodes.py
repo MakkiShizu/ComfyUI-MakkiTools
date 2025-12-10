@@ -419,13 +419,26 @@ class translators:
             _ = self.ts.preaccelerate_and_speedtest()
             self._pre_acceleration_done = True
 
-        output = self.ts.translate_text(
-            query_text,
-            translator=translator,
-            from_language=from_language,
-            to_language=to_language,
-            if_use_preacceleration=if_use_preacceleration,
-        )
+        try:
+            output = self.ts.translate_text(
+                query_text,
+                translator=translator,
+                from_language=from_language,
+                to_language=to_language,
+                if_use_preacceleration=if_use_preacceleration,
+                if_ignore_limit_of_length=True,
+            )
+
+        except Exception as e:
+            error_str = str(e)
+            print(f"[Translators Node] Chunk translation failed: {error_str}")
+
+            if "Unsupported" in error_str or "same" in error_str:
+                print(
+                    f"[Translators Node] Fallback to original text for chunk.Please check the settings of 'from_language' and 'to_language'"
+                )
+
+            return (query_text,)
 
         return (output,)
 
