@@ -420,14 +420,38 @@ class translators:
             self._pre_acceleration_done = True
 
         try:
-            output = self.ts.translate_text(
-                query_text,
-                translator=translator,
-                from_language=from_language,
-                to_language=to_language,
-                if_use_preacceleration=if_use_preacceleration,
-                if_ignore_limit_of_length=True,
-            )
+            import threading
+            import queue
+
+            result_queue = queue.Queue()
+
+            def translate_worker():
+                try:
+                    output = self.ts.translate_text(
+                        query_text,
+                        translator=translator,
+                        from_language=from_language,
+                        to_language=to_language,
+                        if_use_preacceleration=if_use_preacceleration,
+                        if_ignore_limit_of_length=True,
+                    )
+                    result_queue.put(("success", output))
+                except Exception as e:
+                    result_queue.put(("error", e))
+
+            thread = threading.Thread(target=translate_worker)
+            thread.start()
+
+            try:
+                result_type, result = result_queue.get(timeout=10)
+                if result_type == "error":
+                    raise result
+                output = result
+            except queue.Empty:
+                print(
+                    "[Translators Node] Translation timed out, returning original text"
+                )
+                return (query_text,)
 
         except Exception as e:
             error_str = str(e)
