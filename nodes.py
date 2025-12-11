@@ -3,10 +3,16 @@ class GetImageNthCount:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "image": ("IMAGE",),
+                "image": ("IMAGE", {"tooltip": "Input image batch\n输入图像批次"}),
                 "Nth_count": (
                     "INT",
-                    {"default": 1, "min": 1, "max": 2 * 31 - 1, "step": 1},
+                    {
+                        "default": 1,
+                        "min": 1,
+                        "max": 2 * 31 - 1,
+                        "step": 1,
+                        "tooltip": "The index of the image to extract (starting from 1)\n要提取的图像索引（从1开始）",
+                    },
                 ),
             }
         }
@@ -14,6 +20,9 @@ class GetImageNthCount:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "GetImageNthCount"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = (
+        "Extract the Nth image from an image batch.\n从图像批次中提取第N张图像。"
+    )
 
     def GetImageNthCount(self, image, Nth_count):
         return (image[Nth_count - 1 : Nth_count],)
@@ -24,14 +33,23 @@ class ImageChannelSeparate:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "image": ("IMAGE",),
-                "channel": (["red", "green", "blue", "alpha"], {"default": "red"}),
+                "image": ("IMAGE", {"tooltip": "Input image\n输入图像"}),
+                "channel": (
+                    ["red", "green", "blue", "alpha"],
+                    {
+                        "default": "red",
+                        "tooltip": "Select which channel to extract\n选择要提取的通道",
+                    },
+                ),
             }
         }
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "ImageChannelSeparate"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = (
+        "Extract a specific color channel from an image.\n从图像中提取特定颜色通道。"
+    )
 
     def ImageChannelSeparate(self, image, channel):
         channel_map = {"red": 0, "green": 1, "blue": 2, "alpha": 3}
@@ -54,16 +72,29 @@ class MergeImageChannels:
     def INPUT_TYPES(s):
         return {
             "optional": {
-                "red_channel": ("IMAGE",),
-                "green_channel": ("IMAGE",),
-                "blue_channel": ("IMAGE",),
-                "alpha_channel": ("IMAGE",),
+                "red_channel": (
+                    "IMAGE",
+                    {"tooltip": "Red channel image\n红色通道图像"},
+                ),
+                "green_channel": (
+                    "IMAGE",
+                    {"tooltip": "Green channel image\n绿色通道图像"},
+                ),
+                "blue_channel": (
+                    "IMAGE",
+                    {"tooltip": "Blue channel image\n蓝色通道图像"},
+                ),
+                "alpha_channel": (
+                    "IMAGE",
+                    {"tooltip": "Alpha channel image\nAlpha通道图像"},
+                ),
             }
         }
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "MergeImageChannels"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Merge separate color channels into a single image.\n将分离的颜色通道合并为单个图像。"
 
     def MergeImageChannels(
         self,
@@ -112,6 +143,7 @@ class ImageCountConcatenate:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "ImageCountConcatenate"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Concatenate multiple image batches into a single batch.\n将多个图像批次连接成一个批次。"
 
     def ImageCountConcatenate(self, **kwargs):
         images = list(kwargs.values())
@@ -162,6 +194,7 @@ class ImageWidthStitch:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "ImageWidthStitch"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Stitch images horizontally (deprecated).\n水平拼接图像（已弃用）。"
 
     def ImageWidthStitch(self, **kwargs):
         images = list(kwargs.values())
@@ -200,6 +233,7 @@ class ImageHeigthStitch:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "ImageHeigthStitch"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Stitch images vertically (deprecated).\n垂直拼接图像（已弃用）。"
 
     def ImageHeigthStitch(self, **kwargs):
         images = list(kwargs.values())
@@ -235,10 +269,16 @@ class AutoLoop_create_pseudo_loop_video:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "frames": ("IMAGE",),
+                "frames": ("IMAGE", {"tooltip": "Input video frames\n输入视频帧"}),
                 "transition_duration": (
                     "FLOAT",
-                    {"default": 0.2, "min": 0, "max": 0.5, "step": 0.01},
+                    {
+                        "default": 0.2,
+                        "min": 0,
+                        "max": 0.5,
+                        "step": 0.01,
+                        "tooltip": "Transition duration as a proportion of total frames\n过渡持续时间占总帧数的比例",
+                    },
                 ),
             }
         }
@@ -246,6 +286,7 @@ class AutoLoop_create_pseudo_loop_video:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "AutoLoop_create_pseudo_loop_video"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Create a pseudo loop video (deprecated).\n创建伪循环视频（已弃用）。"
 
     def ease_in_out(self, t):
         return t * t * (3 - 2 * t)
@@ -309,14 +350,57 @@ class Environment_INFO:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "SYSTEM_INFO": ("BOOLEAN", {"default": True}),
-                "HARDWARE_INFO": ("BOOLEAN", {"default": True}),
-                "GPU_INFO": ("BOOLEAN", {"default": True}),
-                "DEEP_LEARNING_FRAMEWORKS_INFO": ("BOOLEAN", {"default": True}),
-                "ALL_INSTALLED_PACKAGES_INFO": ("BOOLEAN", {"default": True}),
-                "CUSTOM_NODES_FOLDERS_INFO": ("BOOLEAN", {"default": True}),
+                "SYSTEM_INFO": (
+                    "BOOLEAN",
+                    {
+                        "default": True,
+                        "tooltip": "Display system information\n显示系统信息",
+                    },
+                ),
+                "HARDWARE_INFO": (
+                    "BOOLEAN",
+                    {
+                        "default": True,
+                        "tooltip": "Display hardware information\n显示硬件信息",
+                    },
+                ),
+                "GPU_INFO": (
+                    "BOOLEAN",
+                    {
+                        "default": True,
+                        "tooltip": "Display GPU information\n显示GPU信息",
+                    },
+                ),
+                "DEEP_LEARNING_FRAMEWORKS_INFO": (
+                    "BOOLEAN",
+                    {
+                        "default": True,
+                        "tooltip": "Display deep learning framework information\n显示深度学习框架信息",
+                    },
+                ),
+                "ALL_INSTALLED_PACKAGES_INFO": (
+                    "BOOLEAN",
+                    {
+                        "default": True,
+                        "tooltip": "Display all installed packages information\n显示所有已安装包的信息",
+                    },
+                ),
+                "CUSTOM_NODES_FOLDERS_INFO": (
+                    "BOOLEAN",
+                    {
+                        "default": True,
+                        "tooltip": "Display custom nodes folders information\n显示自定义节点文件夹信息",
+                    },
+                ),
             },
-            "optional": {"anything": (s.any_type, {})},
+            "optional": {
+                "anything": (
+                    s.any_type,
+                    {
+                        "tooltip": "Any input (not used, just for chaining)\n任意输入（不使用，仅用于链式连接）"
+                    },
+                )
+            },
         }
 
     RETURN_TYPES = ("STRING", any_type)
@@ -324,6 +408,7 @@ class Environment_INFO:
     OUTPUT_NODE = True
     FUNCTION = "Environment_INFO"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Display system environment information.\n显示系统环境信息。"
 
     def Environment_INFO(
         self,
@@ -371,26 +456,45 @@ class translators:
 
         return {
             "required": {
-                "query_text": ("STRING", {"multiline": True}),
+                "query_text": (
+                    "STRING",
+                    {"multiline": True, "tooltip": "Text to translate\n要翻译的文本"},
+                ),
                 "translator": (
                     list(ts.translators_pool),
-                    {"default": list(ts.translators_pool)[0]},
+                    {
+                        "default": list(ts.translators_pool)[0],
+                        "tooltip": "Translation service to use\n要使用的翻译服务",
+                    },
                 ),
                 "from_language": (
                     ["auto"] + Supported_Languages,
-                    {"default": "auto"},
+                    {
+                        "default": "auto",
+                        "tooltip": "Source language (auto for automatic detection)\n源语言（auto为自动检测）",
+                    },
                 ),
                 "to_language": (
                     Supported_Languages,
-                    {"default": Supported_Languages[0]},
+                    {
+                        "default": Supported_Languages[0],
+                        "tooltip": "Target language\n目标语言",
+                    },
                 ),
-                "if_use_preacceleration": ("BOOLEAN", {"default": False}),
+                "if_use_preacceleration": (
+                    "BOOLEAN",
+                    {
+                        "default": False,
+                        "tooltip": "Enable pre-acceleration for faster translation\n启用预加速以提高翻译速度",
+                    },
+                ),
             }
         }
 
     RETURN_TYPES = ("STRING",)
     FUNCTION = "translators"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Translate text using various online translation services.\n使用各种在线翻译服务翻译文本。"
 
     def normalize_language_code(self, translator, Language):
         return self.LANGUAGE_MAPPING.get(translator, {}).get(Language, Language)
@@ -479,7 +583,10 @@ class translator_m2m100:
 
         return {
             "required": {
-                "query_text": ("STRING", {"multiline": True}),
+                "query_text": (
+                    "STRING",
+                    {"multiline": True, "tooltip": "Text to translate\n要翻译的文本"},
+                ),
                 "model": (
                     [
                         "facebook/m2m100_418M",
@@ -488,23 +595,35 @@ class translator_m2m100:
                         "facebook/m2m100-12B-avg-10-ckpt",
                         "facebook/m2m100-12B-last-ckpt",
                     ],
-                    {"default": "facebook/m2m100_418M"},
+                    {
+                        "default": "facebook/m2m100_418M",
+                        "tooltip": "M2M100 model to use\n要使用的M2M100模型",
+                    },
                 ),
                 "from_language": (
                     ["auto"] + m2m100map,
-                    {"default": "auto"},
+                    {
+                        "default": "auto",
+                        "tooltip": "Source language (auto for automatic detection)\n源语言（auto为自动检测）",
+                    },
                 ),
                 "to_language": (
                     m2m100map,
-                    {"default": "English (en)"},
+                    {"default": "English (en)", "tooltip": "Target language\n目标语言"},
                 ),
                 "quantization": (
                     ["none", "4bit", "8bit"],
-                    {"default": "8bit"},
+                    {
+                        "default": "8bit",
+                        "tooltip": "Model quantization level\n模型量化级别",
+                    },
                 ),
                 "attention": (
                     ["flash_attention_2", "sdpa", "eager"],
-                    {"default": "sdpa"},
+                    {
+                        "default": "sdpa",
+                        "tooltip": "Attention implementation to use\n要使用的注意力实现",
+                    },
                 ),
             }
         }
@@ -512,6 +631,7 @@ class translator_m2m100:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "translator_m2m100"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Translate text using the M2M100 model.\n使用M2M100模型翻译文本。"
 
     def translator_m2m100(
         self,
@@ -554,12 +674,22 @@ class random_any:
 
     @classmethod
     def INPUT_TYPES(s):
-        return {"optional": {"anything": (s.any_type, {})}}
+        return {
+            "optional": {
+                "anything": (
+                    s.any_type,
+                    {
+                        "tooltip": "Any input (passed through unchanged)\n任意输入（原样传递）"
+                    },
+                )
+            }
+        }
 
     RETURN_TYPES = (any_type, "INT", "FLOAT")
     RETURN_NAMES = ("any", "int", "float")
     FUNCTION = "random_any"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Generate random integer and float values.\n生成随机整数和浮点数值。"
 
     def random_any(self, anything=None):
         return (
@@ -577,26 +707,51 @@ class AnyImageStitch:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "dimension": (["horizontal", "vertical"], {"default": "horizontal"}),
+                "dimension": (
+                    ["horizontal", "vertical"],
+                    {
+                        "default": "horizontal",
+                        "tooltip": "Direction to stitch images\n拼接图像的方向",
+                    },
+                ),
                 "reference_type": (
                     ["first image", "custom"],
-                    {"default": "first image"},
+                    {
+                        "default": "first image",
+                        "tooltip": "Reference size type\n参考尺寸类型",
+                    },
                 ),
                 "reference_value": (
                     "INT",
-                    {"default": 512, "min": 1, "max": 4096, "step": 1},
+                    {
+                        "default": 512,
+                        "min": 1,
+                        "max": 4096,
+                        "step": 1,
+                        "tooltip": "Custom reference size\n自定义参考尺寸",
+                    },
                 ),
                 "upscale_method": (
                     s.upscale_methods,
-                    {"default": "bicubic"},
+                    {
+                        "default": "bicubic",
+                        "tooltip": "Method to upscale images\n图像放大方法",
+                    },
                 ),
-                "crop": (s.crop_methods, {"default": "disabled"}),
+                "crop": (
+                    s.crop_methods,
+                    {
+                        "default": "disabled",
+                        "tooltip": "Crop method for upscaled images\n放大图像的裁剪方法",
+                    },
+                ),
             }
         }
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "AnyImageStitch"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Stitch any number of images in horizontal or vertical direction.\n在水平或垂直方向上拼接任意数量的图像。"
 
     def AnyImageStitch(
         self, dimension, reference_type, reference_value, upscale_method, crop, **kwargs
@@ -677,14 +832,18 @@ class AnyImagetoConditioning_flux_kontext:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "conditioning": ("CONDITIONING",),
-                "vae": ("VAE",),
+                "conditioning": (
+                    "CONDITIONING",
+                    {"tooltip": "Input conditioning\n输入条件"},
+                ),
+                "vae": ("VAE", {"tooltip": "VAE model\nVAE模型"}),
             }
         }
 
     RETURN_TYPES = ("CONDITIONING",)
     FUNCTION = "AnyImagetoConditioning_flux_kontext"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Convert any number of images to conditioning for flux kontext.\n将任意数量的图像转换为flux kontext的条件。"
 
     def AnyImagetoConditioning_flux_kontext(self, conditioning, vae, **kwargs):
         for img in kwargs.values():
@@ -722,12 +881,22 @@ class show_type:
 
     @classmethod
     def INPUT_TYPES(s):
-        return {"optional": {"anything": (s.any_type, {})}}
+        return {
+            "optional": {
+                "anything": (
+                    s.any_type,
+                    {
+                        "tooltip": "Input of any type to show its type\n任意类型的输入以显示其类型"
+                    },
+                )
+            }
+        }
 
     RETURN_TYPES = ("STRING",)
     OUTPUT_NODE = True
     FUNCTION = "show_type"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Show the type of input data.\n显示输入数据的类型。"
 
     def show_type(self, anything):
         type_name = type(anything).__name__.lower()
@@ -754,12 +923,18 @@ class timer:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "mode": (["start", "stop"],),
-                "format": (["ms", "s", "m", "auto"], {"default": "auto"}),
+                "mode": (["start", "stop"], {"tooltip": "Timer mode\n计时器模式"}),
+                "format": (
+                    ["ms", "s", "m", "auto"],
+                    {"default": "auto", "tooltip": "Time display format\n时间显示格式"},
+                ),
             },
             "optional": {
-                "any": (s.any_type, {}),
-                "timer": ("TIMER_MAKKI",),
+                "any": (
+                    s.any_type,
+                    {"tooltip": "Any input to pass through\n任意输入通过"},
+                ),
+                "timer": ("TIMER_MAKKI", {"tooltip": "Timer object\n计时器对象"}),
             },
         }
 
@@ -768,6 +943,7 @@ class timer:
     OUTPUT_NODE = True
     FUNCTION = "timer"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Measure execution time between nodes.\n测量节点间的执行时间。"
 
     @classmethod
     def IS_CHANGED(s, **kwargs):
@@ -826,24 +1002,72 @@ class Image_Resize:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "upscale_method": (s.upscale_methods, {"default": "auto"}),
-                "crop_method": (s.crop_methods, {"default": "center"}),
-                "size": ("INT", {"default": 1024, "min": 1, "max": 8192, "step": 1}),
-                "GCD": ("INT", {"default": 1, "min": 1, "max": 512, "step": 1}),
+                "upscale_method": (
+                    s.upscale_methods,
+                    {
+                        "default": "auto",
+                        "tooltip": "Method to upscale the image\n图像放大方法",
+                    },
+                ),
+                "crop_method": (
+                    s.crop_methods,
+                    {
+                        "default": "center",
+                        "tooltip": "Method to crop the image\n图像裁剪方法",
+                    },
+                ),
+                "size": (
+                    "INT",
+                    {
+                        "default": 1024,
+                        "min": 1,
+                        "max": 8192,
+                        "step": 1,
+                        "tooltip": "Target size (based on selected dimension)\n目标尺寸（基于选定的维度）",
+                    },
+                ),
+                "GCD": (
+                    "INT",
+                    {
+                        "default": 1,
+                        "min": 1,
+                        "max": 512,
+                        "step": 1,
+                        "tooltip": "Greatest Common Divisor constraint\n最大公约数约束",
+                    },
+                ),
             },
             "optional": {
-                "image": ("IMAGE",),
+                "image": ("IMAGE", {"tooltip": "Input image\n输入图像"}),
                 "width": (
                     "INT",
-                    {"min": 1, "max": 8192, "step": 1, "defaultInput": True},
+                    {
+                        "min": 1,
+                        "max": 8192,
+                        "step": 1,
+                        "defaultInput": True,
+                        "tooltip": "Target width\n目标宽度",
+                    },
                 ),
                 "height": (
                     "INT",
-                    {"min": 1, "max": 8192, "step": 1, "defaultInput": True},
+                    {
+                        "min": 1,
+                        "max": 8192,
+                        "step": 1,
+                        "defaultInput": True,
+                        "tooltip": "Target height\n目标高度",
+                    },
                 ),
                 "short_side": (
                     "INT",
-                    {"min": 1, "max": 8192, "step": 1, "defaultInput": True},
+                    {
+                        "min": 1,
+                        "max": 8192,
+                        "step": 1,
+                        "defaultInput": True,
+                        "tooltip": "Short side length\n短边长度",
+                    },
                 ),
             },
         }
@@ -852,6 +1076,7 @@ class Image_Resize:
     RETURN_NAMES = ("image", "width", "height")
     FUNCTION = "Image_Resize"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Resize images with various methods and constraints.\n使用多种方法和约束调整图像大小。"
 
     def Image_Resize(
         self,
@@ -931,15 +1156,27 @@ class Prism_Mirage:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "exterior_image": ("IMAGE",),
-                "interior_image": ("IMAGE",),
+                "exterior_image": ("IMAGE", {"tooltip": "Exterior image\n外部图像"}),
+                "interior_image": ("IMAGE", {"tooltip": "Interior image\n内部图像"}),
                 "exterior_level": (
                     "INT",
-                    {"default": 42, "min": 0, "max": 255, "step": 1},
+                    {
+                        "default": 42,
+                        "min": 0,
+                        "max": 255,
+                        "step": 1,
+                        "tooltip": "Exterior transparency level\n外部透明度级别",
+                    },
                 ),
                 "interior_level": (
                     "INT",
-                    {"default": 24, "min": 0, "max": 255, "step": 1},
+                    {
+                        "default": 24,
+                        "min": 0,
+                        "max": 255,
+                        "step": 1,
+                        "tooltip": "Interior transparency level\n内部透明度级别",
+                    },
                 ),
             }
         }
@@ -947,6 +1184,7 @@ class Prism_Mirage:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "Prism_Mirage"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Apply a prism mirage effect by combining two images.\n通过合并两张图像应用棱镜幻影效果。"
 
     def Prism_Mirage(
         self, exterior_image, interior_image, exterior_level, interior_level
@@ -1002,7 +1240,10 @@ class int_calculate_statistics:
                         "proportions",
                         "z_scores",
                     ],
-                    {"default": "count"},
+                    {
+                        "default": "count",
+                        "tooltip": "Statistical measure to calculate\n要计算的统计量",
+                    },
                 ),
             }
         }
@@ -1010,6 +1251,7 @@ class int_calculate_statistics:
     RETURN_TYPES = (any_type,)
     FUNCTION = "int_calculate_statistics"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Calculate various statistical measures from integer inputs.\n从整数输入计算各种统计量。"
 
     def int_calculate_statistics(self, stat_mode, **kwargs):
         return (self.calculate_statistics(stat_mode, **kwargs),)
@@ -1184,11 +1426,15 @@ class BatchLoraLoader:
             "required": {
                 "model": (
                     "MODEL",
-                    {"tooltip": "The diffusion model the LoRA will be applied to."},
+                    {
+                        "tooltip": "The diffusion model the LoRA will be applied to.\nLoRA将应用到的扩散模型。"
+                    },
                 ),
                 "clip": (
                     "CLIP",
-                    {"tooltip": "The CLIP model the LoRA will be applied to."},
+                    {
+                        "tooltip": "The CLIP model the LoRA will be applied to.\nLoRA将应用到的CLIP模型。"
+                    },
                 ),
                 "loras_count": (
                     "INT",
@@ -1202,7 +1448,10 @@ class BatchLoraLoader:
         }
 
         for i in range(1, 50):
-            inputs["required"][f"lora_name_{i}"] = (loras,)
+            inputs["required"][f"lora_name_{i}"] = (
+                loras,
+                {"tooltip": f"LoRA model {i}\nLoRA模型 {i}"},
+            )
             inputs["required"][f"strength_model_{i}"] = (
                 "FLOAT",
                 {
@@ -1210,7 +1459,7 @@ class BatchLoraLoader:
                     "min": -100.0,
                     "max": 100.0,
                     "step": 0.01,
-                    "tooltip": "How strongly to modify the diffusion model. This value can be negative.",
+                    "tooltip": "How strongly to modify the diffusion model. This value can be negative.\n修改扩散模型的强度。此值可以为负。",
                 },
             )
             inputs["required"][f"strength_clip_{i}"] = (
@@ -1220,7 +1469,7 @@ class BatchLoraLoader:
                     "min": -100.0,
                     "max": 100.0,
                     "step": 0.01,
-                    "tooltip": "How strongly to modify the CLIP model. This value can be negative.",
+                    "tooltip": "How strongly to modify the CLIP model. This value can be negative.\n修改CLIP模型的强度。此值可以为负。",
                 },
             )
 
@@ -1231,7 +1480,7 @@ class BatchLoraLoader:
     FUNCTION = "BatchLoraLoader"
 
     CATEGORY = "MakkiTools"
-    DESCRIPTION = "LoRAs are used to modify diffusion and CLIP models, altering the way in which latents are denoised such as applying styles. Multiple LoRA nodes can be linked together."
+    DESCRIPTION = "Load and apply multiple LoRA models to diffusion and CLIP models.\n加载并将多个LoRA模型应用于扩散和CLIP模型。"
 
     def BatchLoraLoader(self, model, clip, loras_count, loras_num, **kwargs):
         if loras_num == 0:  # 为0时全部跳过
@@ -1306,22 +1555,28 @@ class UniversalInstaller:
                     "STRING",
                     {
                         "default": "",
-                        "tooltip": "The name of the package to install, such as 'requests' or 'tipo-kgen==0.2.0'.",
+                        "tooltip": "The name of the package to install, such as 'requests' or 'tipo-kgen==0.2.0'.\n要安装的包名称，例如'requests'或'tipo-kgen==0.2.0'。",
                     },
                 ),
-                "backend": (["pip", "uv"], {"default": "pip"}),
+                "backend": (
+                    ["pip", "uv"],
+                    {
+                        "default": "pip",
+                        "tooltip": "Package manager to use\n要使用的包管理器",
+                    },
+                ),
                 "mirror_source": (
                     ["default", "tsinghua", "aliyun", "douban", "ustc", "custom"],
                     {
                         "default": "default",
-                        "tooltip": "Select the mirror source, use the content in extra_index_url when custom.",
+                        "tooltip": "Select the mirror source, use the content in extra_index_url when custom.\n选择镜像源，自定义时使用extra_index_url中的内容。",
                     },
                 ),
                 "update_if_no_version": (
                     "BOOLEAN",
                     {
                         "default": False,
-                        "tooltip": "When the package name does not specify a version, should the -U parameter be used to update to the latest version.",
+                        "tooltip": "When the package name does not specify a version, should the -U parameter be used to update to the latest version.\n当包名称未指定版本时，是否应使用-U参数更新到最新版本。",
                     },
                 ),
             },
@@ -1330,7 +1585,7 @@ class UniversalInstaller:
                     "STRING",
                     {
                         "default": "",
-                        "tooltip": "Additional index URLs (e.g., private sources), optional. Only used when 'mirror_source' is set to 'custom'.",
+                        "tooltip": "Additional index URLs (e.g., private sources), optional. Only used when 'mirror_source' is set to 'custom'.\n附加索引URL（例如私有源），可选。仅在'mirror_source'设置为'custom'时使用。",
                     },
                 ),
             },
@@ -1340,6 +1595,7 @@ class UniversalInstaller:
     OUTPUT_NODE = True
     FUNCTION = "UniversalInstaller"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Install Python packages dynamically.\n动态安装Python包。"
 
     @classmethod
     def IS_CHANGED(s, **kwargs):
@@ -1439,7 +1695,7 @@ class get_folder_info:
                     "STRING",
                     {
                         "default": "",
-                        "tooltip": "要扫描的文件夹路径，例如 'C:/Users/MyUser/Documents' 或 '/home/user/documents'",
+                        "tooltip": "要扫描的文件夹路径，例如 'C:/Users/MyUser/Documents' 或 '/home/user/documents'\nThe folder path to scan, e.g. 'C:/Users/MyUser/Documents' or '/home/user/documents'",
                     },
                 ),
                 "file_index": (
@@ -1449,49 +1705,49 @@ class get_folder_info:
                         "min": 1,
                         "max": 1000,
                         "step": 1,
-                        "tooltip": "要获取的第几个文件名（按名称排序），从1开始计数",
+                        "tooltip": "要获取的第几个文件名（按名称排序），从1开始计数\nThe index of the file to get (sorted by name), counting from 1",
                     },
                 ),
                 "output_full_path": (
                     "BOOLEAN",
                     {
                         "default": False,
-                        "tooltip": "如果为True，输出完整路径；否则只输出文件名",
+                        "tooltip": "如果为True，输出完整路径；否则只输出文件名\nIf True, output full path; otherwise output only filename",
                     },
                 ),
                 "include_subfolders": (
                     "BOOLEAN",
                     {
                         "default": False,
-                        "tooltip": "是否包含子文件夹中的文件",
+                        "tooltip": "是否包含子文件夹中的文件\nWhether to include files in subfolders",
                     },
                 ),
                 "file_filter": (
                     "STRING",
                     {
                         "default": "*",
-                        "tooltip": "文件筛选器，例如 '*.txt' 或 'image*.png'",
+                        "tooltip": "文件筛选器，例如 '*.txt' 或 'image*.png'\nFile filter, e.g. '*.txt' or 'image*.png'",
                     },
                 ),
                 "file_types": (
                     ["all", "image", "text", "audio", "video"],
                     {
                         "default": "all",
-                        "tooltip": "文件类型筛选",
+                        "tooltip": "文件类型筛选\nFile type filter",
                     },
                 ),
                 "sort_by": (
                     ["name", "date_modified", "size"],
                     {
                         "default": "name",
-                        "tooltip": "排序方式",
+                        "tooltip": "排序方式\nSort method",
                     },
                 ),
                 "sort_order": (
                     ["ascending", "descending"],
                     {
                         "default": "ascending",
-                        "tooltip": "排序顺序",
+                        "tooltip": "排序顺序\nSort order",
                     },
                 ),
                 "limit": (
@@ -1499,14 +1755,14 @@ class get_folder_info:
                     {
                         "default": 0,
                         "min": 0,
-                        "tooltip": "限制返回的文件数量，0表示无限制",
+                        "tooltip": "限制返回的文件数量，0表示无限制\nLimit the number of files returned, 0 means no limit",
                     },
                 ),
                 "regex_filter": (
                     "STRING",
                     {
                         "default": "",
-                        "tooltip": "正则表达式筛选，例如 '^image.*\\.png$'",
+                        "tooltip": "正则表达式筛选，例如 '^image.*\\.png$'\nRegular expression filter, e.g. '^image.*\\.png$'",
                     },
                 ),
             },
@@ -1524,6 +1780,7 @@ class get_folder_info:
     )
     FUNCTION = "get_folder_info"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Get information about files in a folder.\n获取文件夹中文件的信息。"
 
     def get_folder_info(
         self,
@@ -1765,12 +2022,20 @@ class get_folder_info:
 class BooleanSplitter:
     @classmethod
     def INPUT_TYPES(s):
-        return {"required": {"input_bool": ("BOOLEAN", {"default": True})}}
+        return {
+            "required": {
+                "input_bool": (
+                    "BOOLEAN",
+                    {"default": True, "tooltip": "Input boolean value\n输入布尔值"},
+                )
+            }
+        }
 
     RETURN_TYPES = ("BOOLEAN", "BOOLEAN")
     RETURN_NAMES = ("input", "opposite")
     FUNCTION = "BooleanSplitter"
     CATEGORY = "MakkiTools"
+    DESCRIPTION = "Split a boolean value into itself and its opposite.\n将布尔值拆分为自身和其相反值。"
 
     def BooleanSplitter(self, input_bool):
         opposite = not input_bool
