@@ -2155,6 +2155,133 @@ class ImageTriangulationWarp:
         return result
 
 
+class ImageTPSWarp:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "source_image": (
+                    "IMAGE",
+                    {"tooltip": "Source image to be warped\n源图像，将被变形"},
+                ),
+                "target_mask": (
+                    "MASK",
+                    {
+                        "tooltip": "Target mask to warp the source image to\n目标遮罩，将源图像变形到此形状"
+                    },
+                ),
+                "n_points": (
+                    "INT",
+                    {
+                        "default": 150,
+                        "min": 10,
+                        "max": 500,
+                        "step": 10,
+                        "tooltip": "Number of points to sample from contours\n从轮廓采样的点数",
+                    },
+                ),
+                "smoothness": (
+                    "FLOAT",
+                    {
+                        "default": 0.1,
+                        "min": 0.0,
+                        "max": 10.0,
+                        "step": 0.1,
+                        "tooltip": "Smoothness factor for TPS warping (lower = more precise to contours)\nTPS变形的平滑系数（越低=对轮廓越精确）",
+                    },
+                ),
+            },
+            "optional": {
+                "source_mask": (
+                    "MASK",
+                    {
+                        "tooltip": "Mask for the source image (optional, if not provided, the whole image will be used)\n源图像的遮罩（可选，如果不提供，将使用整个图像）"
+                    },
+                ),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "ImageTPSWarp"
+    CATEGORY = "MakkiTools"
+    DESCRIPTION = "Warp an image using Thin Plate Spline (TPS) based on source and target masks.\n基于源遮罩和目标遮罩使用薄板样条(TPS)对图像进行变形。"
+
+    def ImageTPSWarp(
+        self, source_image, target_mask, n_points, smoothness, source_mask=None
+    ):
+        import comfy.utils
+        import torch
+
+        # 如果没有提供source_mask，则创建一个与source_image同样大小的全白mask
+        if source_mask is None:
+            source_mask = torch.ones_like(source_image[..., 0])
+
+        # 获取目标尺寸（以target_mask为准）
+        target_h, target_w = target_mask.shape[-2], target_mask.shape[-1]
+
+        # 统一调整图像和mask的尺寸
+        # 调整source_image尺寸
+        if source_image.shape[1] != target_h or source_image.shape[2] != target_w:
+            source_image = source_image.permute(
+                0, 3, 1, 2
+            )  # [B, H, W, C] -> [B, C, H, W]
+            source_image = comfy.utils.common_upscale(
+                source_image, target_w, target_h, "bicubic", "center"
+            )
+            source_image = source_image.permute(
+                0, 2, 3, 1
+            )  # [B, C, H, W] -> [B, H, W, C]
+
+        # 调整source_mask尺寸
+        if source_mask.shape[-2] != target_h or source_mask.shape[-1] != target_w:
+            source_mask = source_mask.unsqueeze(
+                1
+            )  # 添加通道维度 [B, H, W] -> [B, 1, H, W]
+            source_mask = comfy.utils.common_upscale(
+                source_mask, target_w, target_h, "bicubic", "center"
+            )
+            source_mask = source_mask.squeeze(
+                1
+            )  # 移除通道维度 [B, 1, H, W] -> [B, H, W]
+
+        # 调整target_mask尺寸（以防万一）
+        if target_mask.shape[-2] != target_h or target_mask.shape[-1] != target_w:
+            target_mask = target_mask.unsqueeze(
+                1
+            )  # 添加通道维度 [B, H, W] -> [B, 1, H, W]
+            target_mask = comfy.utils.common_upscale(
+                target_mask, target_w, target_h, "bicubic", "center"
+            )
+            target_mask = target_mask.squeeze(
+                1
+            )  # 移除通道维度 [B, 1, H, W] -> [B, H, W]
+
+        result = self._execute_tps_warping(
+            source_image, source_mask, target_mask, n_points, smoothness
+        )
+        return (result,)
+
+    def _execute_tps_warping(
+        self, source_image, source_mask, target_mask, n_points, smoothness
+    ):
+        from .warp_tps import warp_image_tps_comfyui
+
+        # 调整mask维度为4D以适配函数（如果需要）
+        if source_mask.dim() == 3:
+            source_mask = source_mask.unsqueeze(0)
+        if target_mask.dim() == 3:
+            target_mask = target_mask.unsqueeze(0)
+
+        # 如果source_image维度是3（单张图片），也添加批次维度
+        if source_image.dim() == 3:
+            source_image = source_image.unsqueeze(0)
+
+        result = warp_image_tps_comfyui(
+            source_image, source_mask, target_mask, n_points, smoothness
+        )
+        return result
+
+
 NODE_CLASS_MAPPINGS = {
     "GetImageNthCount_makki": GetImageNthCount,
     "ImageChannelSeparate_makki": ImageChannelSeparate,
@@ -2179,6 +2306,7 @@ NODE_CLASS_MAPPINGS = {
     "get_folder_info_makki": get_folder_info,
     "BooleanSplitter_makki": BooleanSplitter,
     "ImageTriangulationWarp_makki": ImageTriangulationWarp,
+    "ImageTPSWarp_makki": ImageTPSWarp,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNthCount_makki": "GetImageNthCount(mki-获取第N张图像)",
@@ -2204,4 +2332,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "get_folder_info_makki": "get_folder_info(mki-获取文件夹文件信息)",
     "BooleanSplitter_makki": "BooleanSplitter(mki-布尔值拆分)",
     "ImageTriangulationWarp_makki": "ImageTriangulationWarp(mki-三角剖分图像变形)",
+    "ImageTPSWarp_makki": "ImageTPSWarp(mki-TPS图像变形)",
 }
