@@ -20,6 +20,7 @@ class GetImageNthCount:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "GetImageNthCount"
     CATEGORY = "MakkiTools"
+    DEPRECATED = True
     DESCRIPTION = (
         "Extract the Nth image from an image batch.\n从图像批次中提取第N张图像。"
     )
@@ -143,6 +144,7 @@ class ImageCountConcatenate:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "ImageCountConcatenate"
     CATEGORY = "MakkiTools"
+    DEPRECATED = True
     DESCRIPTION = "Concatenate multiple image batches into a single batch.\n将多个图像批次连接成一个批次。"
 
     def ImageCountConcatenate(self, **kwargs):
@@ -194,7 +196,8 @@ class ImageWidthStitch:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "ImageWidthStitch"
     CATEGORY = "MakkiTools"
-    DESCRIPTION = "Stitch images horizontally (deprecated).\n水平拼接图像（已弃用）。"
+    DEPRECATED = True
+    DESCRIPTION = "Stitch images horizontally.\n水平拼接图像。"
 
     def ImageWidthStitch(self, **kwargs):
         images = list(kwargs.values())
@@ -233,7 +236,8 @@ class ImageHeigthStitch:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "ImageHeigthStitch"
     CATEGORY = "MakkiTools"
-    DESCRIPTION = "Stitch images vertically (deprecated).\n垂直拼接图像（已弃用）。"
+    DEPRECATED = True
+    DESCRIPTION = "Stitch images vertically.\n垂直拼接图像。"
 
     def ImageHeigthStitch(self, **kwargs):
         images = list(kwargs.values())
@@ -286,7 +290,8 @@ class AutoLoop_create_pseudo_loop_video:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "AutoLoop_create_pseudo_loop_video"
     CATEGORY = "MakkiTools"
-    DESCRIPTION = "Create a pseudo loop video (deprecated).\n创建伪循环视频（已弃用）。"
+    DEPRECATED = True
+    DESCRIPTION = "Create a pseudo loop video.\n创建伪循环视频。"
 
     def ease_in_out(self, t):
         return t * t * (3 - 2 * t)
@@ -2195,9 +2200,9 @@ NODE_CLASS_MAPPINGS = {
     "ImageTPSWarp_makki": ImageTPSWarp,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "GetImageNthCount_makki": "GetImageNthCount(mki-获取第N张图像)",
+    "GetImageNthCount_makki": "GetImageNthCount(已弃用-mki-获取第N张图像)",
     "ImageChannelSeparate_makki": "ImageChannelSeparate(mki-图像通道分离)",
-    "ImageCountConcatenate_makki": "ImageCountConcatenate(mki-图像批次拼接)",
+    "ImageCountConcatenate_makki": "ImageCountConcatenate(已弃用-mki-图像批次拼接)",
     "MergeImageChannels_makki": "MergeImageChannels(mki-图像通道合并)",
     "ImageWidthStitch_makki": "ImageWidthStitch(已弃用-mki-图像横向拼接)",
     "ImageHeigthStitch_makki": "ImageHeigthStitch(已弃用-mki-图像纵向拼接)",
